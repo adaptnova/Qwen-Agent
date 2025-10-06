@@ -141,7 +141,7 @@ class TextChatAtOAI(BaseFnCallModel):
                                         Message(role=ASSISTANT,
                                                 content='',
                                                 function_call=FunctionCall(name=tc.function.name,
-                                                                           arguments=tc.function.arguments),
+                                                                           arguments=tc.function.arguments or ''),
                                                 extra={'function_id': tc.id}))
 
                         res = []
