@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Nova Cleanup Timer
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+Unit=nova-cleanup.service
+
+[Install]
+WantedBy=timers.target
+

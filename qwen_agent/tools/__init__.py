@@ -29,6 +29,7 @@ from .proc_manager import ProcManager
 from .search_tool import SearchTool
 from .sql_tool import SQLTool
 from .remote_exec import RemoteExec
+from .web_researcher import WebResearcher
 from .search_tools import FrontPageSearch, HybridSearch, KeywordSearch, VectorSearch
 from .simple_doc_parser import SimpleDocParser
 from .storage import Storage
@@ -64,4 +65,5 @@ __all__ = [
     'SearchTool',
     'SQLTool',
     'RemoteExec',
+    'WebResearcher',
 ]

@@ -188,6 +188,18 @@ class Agent(ABC):
         if tool_name not in self.function_map:
             return f'Tool {tool_name} does not exists.'
         tool = self.function_map[tool_name]
+        # Transcript: before call
+        try:
+            from qwen_agent.utils.transcript import append_event
+            append_event({
+                'ts': time.time(),
+                'event': 'tool_call_start',
+                'tool': tool_name,
+                'args': tool_args if isinstance(tool_args, str) else json.dumps(tool_args, ensure_ascii=False),
+            })
+        except Exception:
+            pass
+
         try:
             tool_result = tool.call(tool_args, **kwargs)
         except (ToolServiceError, DocParserError) as ex:
@@ -200,6 +212,11 @@ class Agent(ABC):
                             f'{exception_type}: {exception_message}\n' \
                             f'Traceback:\n{traceback_info}'
             logger.warning(error_message)
+            try:
+                from qwen_agent.utils.transcript import append_event
+                append_event({'ts': time.time(), 'event': 'tool_call_error', 'tool': tool_name, 'error': error_message})
+            except Exception:
+                pass
             return error_message
 
         # Redact potential secrets in tool outputs
@@ -209,7 +226,14 @@ class Agent(ABC):
             redact = None
 
         if isinstance(tool_result, str):
-            return redact(tool_result) if redact else tool_result
+            out = redact(tool_result) if redact else tool_result
+            try:
+                from qwen_agent.utils.transcript import append_event
+                preview = out if len(out) < 2000 else out[:2000] + '\n...[truncated]'
+                append_event({'ts': time.time(), 'event': 'tool_call_end', 'tool': tool_name, 'output': preview})
+            except Exception:
+                pass
+            return out
         elif isinstance(tool_result, list) and all(isinstance(item, ContentItem) for item in tool_result):
             if redact:
                 new_items = []
@@ -217,11 +241,26 @@ class Agent(ABC):
                     if it.text:
                         it.text = redact(it.text)
                     new_items.append(it)
+                try:
+                    from qwen_agent.utils.transcript import append_event
+                    preview = '\n'.join([it.text or '' for it in new_items if it.text])
+                    if len(preview) > 2000:
+                        preview = preview[:2000] + '\n...[truncated]'
+                    append_event({'ts': time.time(), 'event': 'tool_call_end', 'tool': tool_name, 'output': preview})
+                except Exception:
+                    pass
                 return new_items
             return tool_result  # multimodal tool results
         else:
             s = json.dumps(tool_result, ensure_ascii=False, indent=4)
-            return redact(s) if redact else s
+            out = redact(s) if redact else s
+            try:
+                from qwen_agent.utils.transcript import append_event
+                preview = out if len(out) < 2000 else out[:2000] + '\n...[truncated]'
+                append_event({'ts': time.time(), 'event': 'tool_call_end', 'tool': tool_name, 'output': preview})
+            except Exception:
+                pass
+            return out
 
     def _init_tool(self, tool: Union[str, Dict, BaseTool]):
         if isinstance(tool, BaseTool):

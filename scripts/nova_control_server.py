@@ -58,6 +58,8 @@ class RunRequest(BaseModel):
 def _startup():
     global _agent
     _agent = build_agent()
+    # Initialize task queue
+    _init_queue()
 
 
 @app.post('/run')
@@ -78,6 +80,131 @@ def run_task(req: RunRequest):
         except Exception:
             return {'result': last[-1].content}
     return {'result': ''}
+
+
+# --- Health & Status ---
+@app.get('/health')
+def health():
+    return {'status': 'ok'}
+
+
+@app.get('/status')
+def status():
+    # List background jobs from system_shell runs
+    runs_dir = os.path.join(os.getenv('QWEN_AGENT_DEFAULT_WORKSPACE', '/data/nova'), 'runs', 'system_shell')
+    jobs = []
+    try:
+        for name in os.listdir(runs_dir):
+            meta = os.path.join(runs_dir, name, 'meta.json')
+            if os.path.exists(meta):
+                jobs.append(meta)
+    except Exception:
+        pass
+    return {'background_jobs_meta': jobs, 'queue_len': _queue_len()}
+
+
+# --- Simple SQLite task queue ---
+import sqlite3
+import threading
+
+_queue_db_path = None
+_queue_thread = None
+
+
+def _init_queue():
+    global _queue_db_path, _queue_thread
+    root = os.getenv('QWEN_AGENT_DEFAULT_WORKSPACE', '/data/nova')
+    os.makedirs(root, exist_ok=True)
+    _queue_db_path = os.path.join(root, 'nova_tasks.db')
+    conn = sqlite3.connect(_queue_db_path)
+    cur = conn.cursor()
+    cur.execute(
+        'CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, prompt TEXT, status TEXT, created_at REAL, updated_at REAL, result TEXT)'
+    )
+    conn.commit()
+    conn.close()
+    _queue_thread = threading.Thread(target=_worker, daemon=True)
+    _queue_thread.start()
+
+
+class EnqueueRequest(BaseModel):
+    prompt: str
+
+
+@app.post('/enqueue')
+def enqueue(req: EnqueueRequest):
+    ts = time.time()
+    conn = sqlite3.connect(_queue_db_path)
+    cur = conn.cursor()
+    cur.execute('INSERT INTO tasks (prompt, status, created_at, updated_at, result) VALUES (?, ?, ?, ?, ?)',
+                (req.prompt, 'queued', ts, ts, ''))
+    conn.commit()
+    task_id = cur.lastrowid
+    conn.close()
+    return {'task_id': task_id}
+
+
+@app.get('/tasks')
+def tasks():
+    conn = sqlite3.connect(_queue_db_path)
+    cur = conn.cursor()
+    cur.execute('SELECT id, prompt, status, created_at, updated_at FROM tasks ORDER BY id DESC LIMIT 100')
+    rows = cur.fetchall()
+    conn.close()
+    return {'tasks': rows}
+
+
+def _queue_len():
+    try:
+        conn = sqlite3.connect(_queue_db_path)
+        cur = conn.cursor()
+        cur.execute('SELECT COUNT(*) FROM tasks WHERE status = "queued"')
+        n = cur.fetchone()[0]
+        conn.close()
+        return n
+    except Exception:
+        return -1
+
+
+def _worker():
+    import time as _t
+    from qwen_agent.llm.schema import Message
+    global _agent
+    while True:
+        try:
+            conn = sqlite3.connect(_queue_db_path)
+            cur = conn.cursor()
+            cur.execute('SELECT id, prompt FROM tasks WHERE status = "queued" ORDER BY id ASC LIMIT 1')
+            row = cur.fetchone()
+            if not row:
+                conn.close()
+                _t.sleep(2)
+                continue
+            task_id, prompt = row
+            cur.execute('UPDATE tasks SET status = "running", updated_at = ? WHERE id = ?', (time.time(), task_id))
+            conn.commit()
+            conn.close()
+
+            # Run task
+            last = None
+            for last in _agent.run([Message('user', prompt)]):
+                pass
+            result = last[-1].content if last else ''
+            try:
+                from qwen_agent.utils.redaction import redact
+                if isinstance(result, str):
+                    result = redact(result)
+            except Exception:
+                pass
+
+            conn2 = sqlite3.connect(_queue_db_path)
+            cur2 = conn2.cursor()
+            cur2.execute('UPDATE tasks SET status = "done", updated_at = ?, result = ? WHERE id = ?',
+                         (time.time(), str(result), task_id))
+            conn2.commit()
+            conn2.close()
+        except Exception:
+            _t.sleep(2)
 
 
 def main():
