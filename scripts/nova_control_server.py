@@ -209,7 +209,8 @@ def _worker():
 
 def main():
     port = int(os.getenv('NOVA_CONTROL_PORT', '7125'))
-    uvicorn.run(app, host='0.0.0.0', port=port, log_level='info')
+    log_level = os.getenv('NOVA_CONTROL_LOG_LEVEL', 'error')
+    uvicorn.run(app, host='0.0.0.0', port=port, log_level=log_level)
 
 
 if __name__ == '__main__':

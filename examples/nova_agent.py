@@ -83,13 +83,12 @@ def build_agent() -> Assistant:
 
 def demo():
     agent = build_agent()
-    print('NovaAgent ready. Example tool-calls:')
-    # 1) Run a shell command
-    res = agent._call_tool('system_shell', {'cmd': 'uname -a'})
-    print('system_shell:', res[:400])
-    # 2) Web search
-    res2 = agent._call_tool('search_tool', {'provider': 'serper', 'query': 'Qwen3 VL 30B release notes'})
-    print('search_tool:', res2[:400])
+    if os.getenv('NOVA_VERBOSE', '0').strip() in ('1', 'true', 'yes'):
+        print('NovaAgent ready. Example tool-calls:')
+        res = agent._call_tool('system_shell', {'cmd': 'uname -a'})
+        print('system_shell:', (res or '')[:400])
+        res2 = agent._call_tool('search_tool', {'provider': 'serper', 'query': 'Qwen3 VL 30B release notes'})
+        print('search_tool:', (res2 or '')[:400])
 
 
 if __name__ == '__main__':
