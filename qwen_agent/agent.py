@@ -230,8 +230,7 @@ class Agent(ABC):
             out = redact(tool_result) if redact else tool_result
             try:
                 from qwen_agent.utils.transcript import append_event
-                preview = out if len(out) < 2000 else out[:2000] + '\n...[truncated]'
-                append_event({'ts': time.time(), 'event': 'tool_call_end', 'tool': tool_name, 'output': preview})
+                append_event({'ts': time.time(), 'event': 'tool_call_end', 'tool': tool_name, 'output': out})
             except Exception:
                 pass
             return out
@@ -244,10 +243,12 @@ class Agent(ABC):
                     new_items.append(it)
                 try:
                     from qwen_agent.utils.transcript import append_event
-                    preview = '\n'.join([it.text or '' for it in new_items if it.text])
-                    if len(preview) > 2000:
-                        preview = preview[:2000] + '\n...[truncated]'
-                    append_event({'ts': time.time(), 'event': 'tool_call_end', 'tool': tool_name, 'output': preview})
+                    append_event({
+                        'ts': time.time(),
+                        'event': 'tool_call_end',
+                        'tool': tool_name,
+                        'output': [it.model_dump() for it in new_items],
+                    })
                 except Exception:
                     pass
                 return new_items
@@ -257,8 +258,7 @@ class Agent(ABC):
             out = redact(s) if redact else s
             try:
                 from qwen_agent.utils.transcript import append_event
-                preview = out if len(out) < 2000 else out[:2000] + '\n...[truncated]'
-                append_event({'ts': time.time(), 'event': 'tool_call_end', 'tool': tool_name, 'output': preview})
+                append_event({'ts': time.time(), 'event': 'tool_call_end', 'tool': tool_name, 'output': out})
             except Exception:
                 pass
             return out
