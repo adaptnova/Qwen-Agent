@@ -47,6 +47,7 @@ Enable Nova to orchestrate multiple Qwen-family models, routing work to the best
   4. Extend transcripts to tag interactions by agent/model for audit.
   5. Build dashboard (Grafana/Prometheus or ELK) for per-model metrics; integrate with existing logging.
   6. End-to-end drill: complex scenario requiring coding, reasoning, and multimodal analysis (e.g., “analyze website, scrape data, write ETL script, summarize findings”).
+  7. Integrate Threshold MCP suite once available and document activation playbook per domain.
 - **Dependencies**: Milestones 2.1 & 2.2, policy requirements from stakeholders, monitoring stack.
 
 ## Phase 3 — Domain Toolkits (Finance, Data Science, Infra)

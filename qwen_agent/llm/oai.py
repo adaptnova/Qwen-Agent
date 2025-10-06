@@ -66,7 +66,7 @@ class TextChatAtOAI(BaseFnCallModel):
 
             def _chat_complete_create(*args, **kwargs):
                 # OpenAI API v1 does not allow the following args, must pass by extra_body
-                extra_params = ['top_k', 'repetition_penalty']
+                extra_params = ['top_k', 'repetition_penalty', 'parallel_function_calls', 'function_choice', 'thought_in_content']
                 if any((k in kwargs) for k in extra_params):
                     kwargs['extra_body'] = copy.deepcopy(kwargs.get('extra_body', {}))
                     for k in extra_params:
@@ -80,7 +80,7 @@ class TextChatAtOAI(BaseFnCallModel):
 
             def _complete_create(*args, **kwargs):
                 # OpenAI API v1 does not allow the following args, must pass by extra_body
-                extra_params = ['top_k', 'repetition_penalty']
+                extra_params = ['top_k', 'repetition_penalty', 'parallel_function_calls', 'function_choice', 'thought_in_content']
                 if any((k in kwargs) for k in extra_params):
                     kwargs['extra_body'] = copy.deepcopy(kwargs.get('extra_body', {}))
                     for k in extra_params:
