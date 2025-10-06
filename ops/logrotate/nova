@@ -1,0 +1,10 @@
+/data/nova/logs/*.log /data/nova/logs/*.jsonl {
+  size 50M
+  rotate 7
+  compress
+  delaycompress
+  missingok
+  notifempty
+  copytruncate
+}
+

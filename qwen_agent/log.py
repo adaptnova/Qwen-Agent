@@ -16,6 +16,22 @@ import logging
 import os
 
 
+class RedactFilter(logging.Filter):
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        try:
+            msg = record.getMessage()
+            # Lazy import to avoid cycles
+            from qwen_agent.utils.redaction import redact
+            red = redact(msg)
+            if red != msg:
+                record.msg = red
+                record.args = ()
+        except Exception:
+            pass
+        return True
+
+
 def setup_logger(level=None):
     if level is None:
         if os.getenv('QWEN_AGENT_DEBUG', '0').strip().lower() in ('1', 'true'):
@@ -31,6 +47,7 @@ def setup_logger(level=None):
     _logger = logging.getLogger('qwen_agent_logger')
     _logger.setLevel(level)
     _logger.addHandler(handler)
+    _logger.addFilter(RedactFilter())
     return _logger
 
 

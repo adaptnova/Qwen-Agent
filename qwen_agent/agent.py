@@ -202,12 +202,26 @@ class Agent(ABC):
             logger.warning(error_message)
             return error_message
 
+        # Redact potential secrets in tool outputs
+        try:
+            from qwen_agent.utils.redaction import redact
+        except Exception:
+            redact = None
+
         if isinstance(tool_result, str):
-            return tool_result
+            return redact(tool_result) if redact else tool_result
         elif isinstance(tool_result, list) and all(isinstance(item, ContentItem) for item in tool_result):
+            if redact:
+                new_items = []
+                for it in tool_result:
+                    if it.text:
+                        it.text = redact(it.text)
+                    new_items.append(it)
+                return new_items
             return tool_result  # multimodal tool results
         else:
-            return json.dumps(tool_result, ensure_ascii=False, indent=4)
+            s = json.dumps(tool_result, ensure_ascii=False, indent=4)
+            return redact(s) if redact else s
 
     def _init_tool(self, tool: Union[str, Dict, BaseTool]):
         if isinstance(tool, BaseTool):

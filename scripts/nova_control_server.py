@@ -68,7 +68,15 @@ def run_task(req: RunRequest):
     for last in _agent.run(messages):
         pass
     if last:
-        return {'result': last[-1].content}
+        # Redact before returning
+        try:
+            from qwen_agent.utils.redaction import redact
+            content = last[-1].content
+            if isinstance(content, str):
+                content = redact(content)
+            return {'result': content}
+        except Exception:
+            return {'result': last[-1].content}
     return {'result': ''}
 
 
@@ -79,4 +87,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
