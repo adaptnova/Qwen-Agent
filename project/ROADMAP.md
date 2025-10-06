@@ -49,9 +49,58 @@ Enable Nova to orchestrate multiple Qwen-family models, routing work to the best
   6. End-to-end drill: complex scenario requiring coding, reasoning, and multimodal analysis (e.g., “analyze website, scrape data, write ETL script, summarize findings”).
 - **Dependencies**: Milestones 2.1 & 2.2, policy requirements from stakeholders, monitoring stack.
 
-## Phase 3 — Domain Toolkits (Tentative)
-*Placeholder for Finance, Data Science, Infra kits once Model Fleet is stable.*
+## Phase 3 — Domain Toolkits (Finance, Data Science, Infra)
 
-## Phase 4 — Observability & Governance Enhancements (Tentative)
-*Signed transcripts, RBAC, policy engine, SIEM integration.*
+### Milestone 3.1 — Finance Kit
+- **Deliverables**:
+  - API connectors for market/ledger data (Bloomberg-like, internal APIs).
+  - Risk engines integration (VaR, scenario analysis) exposed as tools.
+  - Compliance prompt wrappers to enforce audit-friendly language.
+- **Tasks**:
+  1. Gather data source requirements (APIs, auth, rate limits).
+  2. Build & register toolkit (e.g., `finance_market_data`, `finance_risk_calc`).
+  3. Create compliance wrapper prompts + policy configs.
+  4. Validate with finance ops scenarios.
 
+### Milestone 3.2 — Data Science Kit
+- **Deliverables**:
+  - Jupyter container orchestration, dataset catalog integration, notebook→artifact publishing.
+  - Tools for spark jobs, data validation suites.
+- **Tasks**:
+  1. Choose container runtime (Docker/systemd-nspawn) and implement management tools.
+  2. Integrate dataset metadata service (e.g., Feast, DataHub) for search and access.
+  3. Automate notebook export (HTML/PDF/MLflow) and storage in /data/nova artifacts.
+  4. Test on DS workflows (EDA, modeling, reporting).
+
+### Milestone 3.3 — Infrastructure Kit
+- **Deliverables**:
+  - Terraform/Ansible wrappers, cloud CLI integration (AWS/Azure/GCP/On-prem), incident response playbooks.
+- **Tasks**:
+  1. Wrap IaC commands with guardrails (plan/apply tagging, dry-run defaults).
+  2. Integrate with incident tooling (PagerDuty, Slack alerts) for auto-remediation.
+  3. Provide guardrail policies (what environments Nova can change).
+  4. Validate with staged infra changes and simulated incidents.
+
+## Phase 4 — Observability & Ops Enhancements
+
+### Milestone 4.1 — Streaming Metrics & Dashboards
+- **Deliverables**: Prometheus exporters for tool usage, latency, errors; Grafana dashboards.
+- **Tasks**: instrument transcripts/control server, push metrics, build dashboards.
+
+### Milestone 4.2 — Enhanced Auditing
+- **Deliverables**: Cryptographically signed transcripts, immutable storage (WORM/SIEM integration).
+- **Tasks**: sign transcripts, push to secure store, integrate with security team workflows.
+
+### Milestone 4.3 — Adaptive Throttling & Policy Engine
+- **Deliverables**: Dynamic concurrency limits based on system load/policies; per-agent tool enable/disable.
+- **Tasks**: monitor load, implement policy configs, throttle tool calls when thresholds hit.
+
+## Phase 5 — UX & Collaboration
+
+### Milestone 5.1 — NovaOps Console
+- **Deliverables**: Web UI on FastAPI control for queue, status, logs, kill switch.
+- **Tasks**: build React/Next (or similar) front-end, secured auth, integrate transcripts/log views.
+
+### Milestone 5.2 — Slack/Teams Integration
+- **Deliverables**: Command/response interface with approvals, notifications.
+- **Tasks**: build bot connectors, map commands to control API, add optional human approvals per domain.
