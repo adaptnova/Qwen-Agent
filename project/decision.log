@@ -1,0 +1,20 @@
+# NovaOps Decision Log
+
+Documenting major choices and rationale. Timestamp in UTC.
+
+## 2025-10-06 18:30
+**Decision:** Keep Nova pointed at internal vLLM endpoint (`http://10.0.1.1:18000/v1`) for production traffic.
+**Why:** Cloudflare edge still challenged API requests; internal path provides sub-ms RTT and avoids WAF delays.
+
+## 2025-10-06 19:10
+**Decision:** Install `qwen-agent[gui,rag,code_interpreter,mcp,python_executor]` extras.
+**Why:** Full tool stack (filesystem, shell, RAG, python execution) required for Nova’s launch tests.
+
+## 2025-10-06 20:05
+**Decision:** Create interactive CLI (`nn`) for Chase/Nova pairing.
+**Why:** Need a native co-creation interface with transcripts, time-to-response, and direct tool execution.
+
+## 2025-10-06 21:50
+**Decision:** Enable vLLM `--enable-auto-tool-choice --tool-call-parser hermes`.
+**Why:** Nova must execute shell/web/database tools automatically; accepting hermes parser until we add native Qwen routing.
+
