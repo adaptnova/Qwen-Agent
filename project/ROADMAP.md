@@ -95,6 +95,25 @@ Enable Nova to orchestrate multiple Qwen-family models, routing work to the best
 - **Deliverables**: Dynamic concurrency limits based on system load/policies; per-agent tool enable/disable.
 - **Tasks**: monitor load, implement policy configs, throttle tool calls when thresholds hit.
 
+### Milestone 4.4 — Hardening & Policy Controls
+- **Deliverables**:
+  - Policy engine to enable/disable toolkits per persona (NovaOps-core, Finance-Nova, DS-Nova).
+  - Role-based secrets injection (per-agent secret scopes).
+  - Sandbox modes (“read-only”, “simulation”) for staging.
+- **Tasks**:
+  1. Design policy schema & enforcement layer (YAML/JSON + runtime checks).
+  2. Implement secrets scoping (possibly via templated env files or secret managers).
+  3. Add runtime switches for sandbox modes; validate against destructive commands.
+
+### Milestone 4.5 — Automation & Lifecycle
+- **Deliverables**:
+  - CI/CD pipeline (tests, lint, healthcheck) with deploy gating (Nova-assisted where possible).
+  - Auto-scaling/staging scripts for multi-region or multi-environment rollout.
+- **Tasks**:
+  1. Integrate GitHub Actions (or internal CI) running `scripts/run_tests.sh`, `scripts/nova_healthcheck.py` (mock).
+  2. Build deployment scripts (Ansible/Terraform) to spin up Nova stacks.
+  3. Load-test & prepare staging configs for future multi-region deployments.
+
 ## Phase 5 — UX & Collaboration
 
 ### Milestone 5.1 — NovaOps Console
