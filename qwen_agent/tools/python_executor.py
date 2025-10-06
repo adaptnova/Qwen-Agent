@@ -27,7 +27,7 @@ import json5
 import regex
 from tqdm import tqdm
 
-from qwen_agent.tools.base import BaseTool
+from qwen_agent.tools.base import BaseTool, register_tool
 from qwen_agent.utils.utils import extract_code
 
 
