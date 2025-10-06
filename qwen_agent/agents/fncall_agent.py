@@ -16,7 +16,7 @@ import copy
 from typing import Dict, Iterator, List, Literal, Optional, Union
 
 from qwen_agent import Agent
-from qwen_agent.llm import BaseChatModel
+from qwen_agent.llm import BaseChatModel, get_chat_model
 from qwen_agent.llm.schema import DEFAULT_SYSTEM_MESSAGE, FUNCTION, Message
 from qwen_agent.memory import Memory
 from qwen_agent.settings import MAX_LLM_CALL_PER_RUN
@@ -40,13 +40,17 @@ class FnCallAgent(Agent):
         Args:
             function_list: One list of tool name, tool configuration or Tool object,
               such as 'code_interpreter', {'name': 'code_interpreter', 'timeout': 10}, or CodeInterpreter().
-            llm: The LLM model configuration or LLM model object.
-              Set the configuration as {'model': '', 'api_key': '', 'model_server': ''}.
+            llm: The LLM model configuration or LLM model object. If omitted, a default
+              configuration will be used (currently `qwen-plus`).
             system_message: The specified system message for LLM chat.
             name: The name of this agent.
             description: The description of this agent, which will be used for multi_agent.
             files: A file url list. The initialized files for the agent.
         """
+        if llm is None:
+            # Default to a generic, widely available model if none is provided.
+            llm = get_chat_model('qwen-plus')
+
         super().__init__(function_list=function_list,
                          llm=llm,
                          system_message=system_message,

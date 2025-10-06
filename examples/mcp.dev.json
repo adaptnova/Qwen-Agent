@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "devtools": {
+      "command": "/usr/local/bin/devtools-mcp",
+      "args": ["--port", "7123"],
+      "env": {}
+    },
+    "filesystem": {
+      "command": "mcp-filesystem",
+      "args": ["/"],
+      "env": {}
+    },
+    "memory": {
+      "command": "mcp-memory",
+      "args": []
+    }
+  }
+}
+

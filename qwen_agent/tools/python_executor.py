@@ -92,7 +92,7 @@ def _check_deps_for_python_executor():
             'Please install the required dependencies by running: pip install "qwen-agent[python_executor]"') from e
 
 
-# @register_tool('python_executor')  # Do not register this tool by default because it is dangerous.
+@register_tool('python_executor')  # Registered for Nova: unsandboxed Python execution
 class PythonExecutor(BaseTool):
     name = 'python_executor'
     description = 'For executing python code. Not sandboxed. Do not use it for production purposes.'

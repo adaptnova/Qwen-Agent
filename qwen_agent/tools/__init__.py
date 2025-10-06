@@ -22,6 +22,13 @@ from .python_executor import PythonExecutor
 from .retrieval import Retrieval
 from .image_zoom_in_qwen3vl import ImageZoomInToolQwen3VL
 from .image_search import ImageSearch
+from .system_shell import SystemShell
+from .fs_admin import FSAdmin
+from .http_client import HTTPClient
+from .proc_manager import ProcManager
+from .search_tool import SearchTool
+from .sql_tool import SQLTool
+from .remote_exec import RemoteExec
 from .search_tools import FrontPageSearch, HybridSearch, KeywordSearch, VectorSearch
 from .simple_doc_parser import SimpleDocParser
 from .storage import Storage
@@ -50,4 +57,11 @@ __all__ = [
     'PythonExecutor',
     'MCPManager',
     'WebSearch',
+    'SystemShell',
+    'FSAdmin',
+    'HTTPClient',
+    'ProcManager',
+    'SearchTool',
+    'SQLTool',
+    'RemoteExec',
 ]
