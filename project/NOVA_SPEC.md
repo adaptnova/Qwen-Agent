@@ -141,7 +141,22 @@ Nova Agent (Project “Nova”) — Technical Spec
   }
 - providers resolve credentials from matching env files under /data/secrets (e.g., POSTGRES_MAIN.env, CLICKHOUSE_MAIN.env, etc.).
 
-3.9 devtools (MCP)
+3.9 web_researcher
+- description: Search + fetch + extract readable text from top web results.
+- parameters:
+  {
+    "type": "object",
+    "properties": {
+      "query": {"type": "string"},
+      "provider": {"type": "string", "enum": ["serper", "tavily"]},
+      "num_results": {"type": "number", "default": 5},
+      "max_chars": {"type": "number", "default": 5000}
+    },
+    "required": ["query"]
+  }
+- Uses `search_tool` internally then fetches and parses HTML via BeautifulSoup.
+
+3.10 devtools (MCP)
 - description: Browser automation via Chrome DevTools MCP.
 - MCP config: /data/nova/mcp.json includes a server named "devtools" that Nova connects to via MCPManager.
 - Exposes tools: navigate, click, type, wait_for_selector, screenshot, extract_html, evaluate_js.
@@ -153,13 +168,14 @@ Nova Agent (Project “Nova”) — Technical Spec
     "filesystem": {"command": "mcp-filesystem", "args": ["/"], "env": {}},
     "memory": {"command": "mcp-memory", "args": []}
   }
-}
+ }
 Notes: Filesystem server is unconstrained by design (allowed path "/"). Adjust only if you later choose to scope.
 
 5) Logging & Redaction
 - Each tool call logs: {ts, tool, params_redacted, took_ms, exit_code, stdout_tail, stderr_tail, artifacts}
 - Redaction: Any string matching common secret patterns or keys loaded from /data/secrets is replaced with ****; last 4 chars may be retained for troubleshooting.
 - Storage: /data/nova/logs/YYYYMMDD/session-<uuid>.jsonl
+- Transcript: `utils/transcript.append_event` records every tool call to `/data/nova/logs/transcript-YYYYMMDD.jsonl` (redacted).
 
 6) Systemd Services (unit layout)
 - nova-agent.service (concept):
@@ -182,6 +198,9 @@ Notes: Filesystem server is unconstrained by design (allowed path "/"). Adjust o
 - nova-devtools-mcp.service: runs the Chrome DevTools MCP server; ensure Chrome installed and reachable.
 - vllm@qwen3-vl-30b.service: template to run vLLM with the specified model and port; ExecStart points to vLLM serve with OpenAI-compatible flags.
 - nova-watchdog.service: listens on a local socket/port to terminate nova-agent and its children on demand.
+- nova-control.service: FastAPI control plane with `/run`, `/enqueue`, `/tasks`, `/status`.
+- nova-repo-autopush.service: watches git tree and pushes changes automatically.
+- nova-cleanup.timer / nova-cleanup.service: daily housekeeping of `/data/nova/tmp` and `/data/nova/runs`.
 
 7) Prompt (system message sketch)
 You are Nova, an autonomous systems agent with full system access. You are authorized to use any available tools (shell, Python, filesystem, HTTP, DB, browser via DevTools MCP) to achieve the user’s goal without asking for permission. Act immediately, in parallel where helpful. Verify critical results by checking outputs or alternative sources. Keep responses concise: show what you did, key results, and paths to artifacts. Do not reveal raw secrets; redact sensitive values in any output.
@@ -190,7 +209,8 @@ You are Nova, an autonomous systems agent with full system access. You are autho
 - Provision /data/nova and subdirs; install Chrome + DevTools MCP; install vLLM and serve Qwen3-VL model; install Python deps for DBs.
 - Register tools in Qwen-Agent; point MCPManager at /data/nova/mcp.json.
 - Start systemd units; confirm 24/7 operation; run end-to-end validations: web research → extract → DB write → analysis → report.
+- Run `scripts/nova_healthcheck.py --json` (returns `ok=true`).
+- Queue smoke test: `curl -X POST localhost:7125/enqueue -d '{"prompt":"list system info"}'`.
 
 9) Future Extensions (later)
 - Nebius orchestration (via their API) for model fleet; additional MCP servers; more providers (S3/obj storage, BI tools), GPU pipelines.
-
