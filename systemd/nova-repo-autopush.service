@@ -1,0 +1,17 @@
+[Unit]
+Description=Nova Auto Push Git Changes
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/data/Qwen-Agent
+Environment=REPO_DIR=/data/Qwen-Agent
+Environment=GIT_REMOTE=novaremote
+Environment=GIT_BRANCH=main
+ExecStart=/usr/bin/bash /data/Qwen-Agent/scripts/auto_push_watch.sh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+

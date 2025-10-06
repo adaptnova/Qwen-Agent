@@ -1,0 +1,14 @@
+[Unit]
+Description=Nova Kill-Switch Watchdog
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /data/Qwen-Agent/scripts/nova_watchdog.py
+Restart=always
+RestartSec=2
+RuntimeDirectory=nova
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,17 @@
+[Unit]
+Description=Nova Control HTTP Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/data/Qwen-Agent
+Environment=QWEN_AGENT_DEFAULT_WORKSPACE=/data/nova
+EnvironmentFile=-/data/secrets/nova.env
+ExecStart=/usr/bin/python3 /data/Qwen-Agent/scripts/nova_control_server.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+
