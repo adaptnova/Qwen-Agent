@@ -54,8 +54,14 @@ class SQLTool(BaseTool):
             return self._postgres(profile, op, payload)
         if provider == 'elasticsearch':
             return self._elasticsearch(profile, op, payload)
-        if provider in ('clickhouse', 'neo4j', 'weaviate', 'meilisearch'):
-            return json_dumps_pretty({'error': 'provider_not_implemented', 'provider': provider})
+        if provider == 'clickhouse':
+            return self._clickhouse(profile, op, payload)
+        if provider == 'neo4j':
+            return self._neo4j(profile, op, payload)
+        if provider == 'weaviate':
+            return self._weaviate(profile, op, payload)
+        if provider == 'meilisearch':
+            return self._meilisearch(profile, op, payload)
         return json_dumps_pretty({'error': 'unsupported_provider', 'provider': provider})
 
     def _postgres(self, profile: str, op: str, payload: Dict) -> str:
@@ -138,3 +144,117 @@ class SQLTool(BaseTool):
         except Exception:
             return r.text
 
+    def _clickhouse(self, profile: str, op: str, payload: Dict) -> str:
+        env_path = f'/data/secrets/{profile or "CLICKHOUSE_MAIN"}.env'
+        env = _read_env_file(env_path)
+        # Prefer HTTP interface
+        base = env.get('CLICKHOUSE_URL') or os.getenv('CLICKHOUSE_URL', 'http://127.0.0.1:8123')
+        user = env.get('CLICKHOUSE_USER') or os.getenv('CLICKHOUSE_USER')
+        password = env.get('CLICKHOUSE_PASSWORD') or os.getenv('CLICKHOUSE_PASSWORD')
+        database = env.get('CLICKHOUSE_DATABASE') or os.getenv('CLICKHOUSE_DATABASE')
+        try:
+            import requests
+            sql = payload.get('sql')
+            if not sql:
+                return json_dumps_pretty({'error': 'missing_sql'})
+            params = {}
+            if database:
+                params['database'] = database
+            r = requests.post(base, params=params, data=sql.encode('utf-8'), auth=(user, password) if user or password else None)
+            if r.headers.get('content-type', '').startswith('application/json'):
+                body = r.json()
+            else:
+                body = r.text
+            return json_dumps_pretty({'code': r.status_code, 'body': body})
+        except Exception as ex:
+            return json_dumps_pretty({'error': 'clickhouse_error', 'message': str(ex)})
+
+    def _neo4j(self, profile: str, op: str, payload: Dict) -> str:
+        env_path = f'/data/secrets/{profile or "NEO4J_MAIN"}.env'
+        env = _read_env_file(env_path)
+        url = env.get('NEO4J_URL') or os.getenv('NEO4J_URL', 'neo4j://127.0.0.1:7687')
+        user = env.get('NEO4J_USER') or os.getenv('NEO4J_USER')
+        password = env.get('NEO4J_PASSWORD') or os.getenv('NEO4J_PASSWORD')
+        try:
+            from neo4j import GraphDatabase
+        except Exception as ex:
+            return json_dumps_pretty({'error': 'missing_dependency', 'package': 'neo4j', 'message': str(ex)})
+        query = payload.get('cypher') or payload.get('query')
+        params = payload.get('params') or {}
+        if not query:
+            return json_dumps_pretty({'error': 'missing_cypher'})
+        try:
+            driver = GraphDatabase.driver(url, auth=(user, password) if user or password else None)
+            with driver.session() as session:
+                res = session.run(query, **params)
+                records = [r.data() for r in res]
+            driver.close()
+            return json_dumps_pretty({'rows': records, 'rowcount': len(records)})
+        except Exception as ex:
+            return json_dumps_pretty({'error': 'neo4j_error', 'message': str(ex)})
+
+    def _weaviate(self, profile: str, op: str, payload: Dict) -> str:
+        env_path = f'/data/secrets/{profile or "WEAVIATE_MAIN"}.env'
+        env = _read_env_file(env_path)
+        base = env.get('WEAVIATE_URL') or os.getenv('WEAVIATE_URL', 'http://127.0.0.1:8080')
+        api_key = env.get('WEAVIATE_API_KEY') or os.getenv('WEAVIATE_API_KEY')
+        headers = {'Content-Type': 'application/json'}
+        if api_key:
+            headers['Authorization'] = f'Bearer {api_key}'
+        try:
+            import requests
+            if op == 'graphql':
+                query = payload.get('query')
+                if not query:
+                    return json_dumps_pretty({'error': 'missing_query'})
+                r = requests.post(f'{base}/v1/graphql', headers=headers, json={'query': query})
+                return json_dumps_pretty({'code': r.status_code, 'body': self._safe_json(r)})
+            elif op == 'objects_create':
+                obj = payload.get('object')
+                if not obj:
+                    return json_dumps_pretty({'error': 'missing_object'})
+                r = requests.post(f'{base}/v1/objects', headers=headers, json=obj)
+                return json_dumps_pretty({'code': r.status_code, 'body': self._safe_json(r)})
+            elif op == 'schema_put':
+                cls = payload.get('class')
+                if not cls:
+                    return json_dumps_pretty({'error': 'missing_class'})
+                r = requests.post(f'{base}/v1/schema/classes', headers=headers, json=cls)
+                return json_dumps_pretty({'code': r.status_code, 'body': self._safe_json(r)})
+            else:
+                return json_dumps_pretty({'error': 'unsupported_op', 'op': op})
+        except Exception as ex:
+            return json_dumps_pretty({'error': 'weaviate_error', 'message': str(ex)})
+
+    def _meilisearch(self, profile: str, op: str, payload: Dict) -> str:
+        env_path = f'/data/secrets/{profile or "MEILI_MAIN"}.env'
+        env = _read_env_file(env_path)
+        base = env.get('MEILI_URL') or os.getenv('MEILI_URL', 'http://127.0.0.1:7700')
+        key = env.get('MEILI_API_KEY') or os.getenv('MEILI_API_KEY')
+        headers = {'Content-Type': 'application/json'}
+        if key:
+            headers['X-Meili-API-Key'] = key
+        try:
+            import requests
+            if op == 'index_create':
+                uid = payload['uid']
+                primary_key = payload.get('primaryKey')
+                body = {'uid': uid}
+                if primary_key:
+                    body['primaryKey'] = primary_key
+                r = requests.post(f'{base}/indexes', headers=headers, json=body)
+                return json_dumps_pretty({'code': r.status_code, 'body': self._safe_json(r)})
+            elif op == 'add_documents':
+                uid = payload['uid']
+                docs = payload['documents']
+                r = requests.post(f'{base}/indexes/{uid}/documents', headers=headers, json=docs)
+                return json_dumps_pretty({'code': r.status_code, 'body': self._safe_json(r)})
+            elif op == 'search':
+                uid = payload['uid']
+                q = payload.get('q', '')
+                r = requests.post(f'{base}/indexes/{uid}/search', headers=headers, json={'q': q})
+                return json_dumps_pretty({'code': r.status_code, 'body': self._safe_json(r)})
+            else:
+                return json_dumps_pretty({'error': 'unsupported_op', 'op': op})
+        except Exception as ex:
+            return json_dumps_pretty({'error': 'meili_error', 'message': str(ex)})

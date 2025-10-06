@@ -1,0 +1,15 @@
+[Unit]
+Description=vLLM server for %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Example: override ExecStart with a drop-in to set model/port; this is a template.
+ExecStart=/usr/bin/bash -lc 'echo "Configure vLLM ExecStart via systemd drop-in for model %i"; sleep infinity'
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
