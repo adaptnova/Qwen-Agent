@@ -79,6 +79,20 @@ sudo cp ops/logrotate/nova /etc/logrotate.d/nova
 
 Daily cleanup runs via `nova-cleanup.timer`. Adjust TTL via `NOVA_CLEAN_TTL_DAYS` env if needed.
 
+## 7. (Optional) Qwen3-Coder Specialist
+
+1. Provision a separate vLLM endpoint for the coder model (e.g., `NOVA_CODER_LLM_SERVER=http://<host>:8010/v1`).
+2. Export coder env vars:
+   ```bash
+   export NOVA_CODER_LLM_SERVER=http://127.0.0.1:8010/v1
+   export NOVA_CODER_LLM_MODEL=Qwen/Qwen3-Coder-Plus-32B
+   ```
+3. Use `examples/nova_router.py` to route code-heavy tasks:
+   ```bash
+   python examples/nova_router.py "Refactor this Python class to use dependency injection"
+   ```
+4. Control plane integration (soon): update `nova_control_server` to swap in the router once the coder endpoint is stable.
+
 ## 7. Validation
 
 ```bash
@@ -93,6 +107,7 @@ Manual checks:
 - `curl http://127.0.0.1:7125/health`
 - `printf 'STOP' | socat - UNIX-CONNECT:/run/nova_watchdog.sock` (kill switch)
 - `ls /data/nova/logs/transcript-*.jsonl`
+- `python scripts/nova_router.py` (quick sanity check once coder endpoint is available)
 
 ## 8. Auto Push
 
@@ -115,5 +130,4 @@ git remote add novaremote https://github.com/ADAPT-Chase/Nova-Qwen-Agent.git
 - Logrotate rotates when files exceed 50MB
 - Cleanup timer removes tmp artifacts older than 14 days
 
-Once all checks pass, Nova is production-ready.
-
+Once all checks pass, Nova is production-ready. For multi-model deployments, validate each specialist endpoint separately.

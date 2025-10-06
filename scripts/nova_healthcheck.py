@@ -90,6 +90,11 @@ def main():
         'control': check_control_server(args.control_host, args.control_port),
         'logs': check_logs(args.workspace),
     }
+
+    coder_endpoint = os.getenv('NOVA_CODER_LLM_SERVER')
+    coder_model = os.getenv('NOVA_CODER_LLM_MODEL')
+    if coder_endpoint and coder_model:
+        results['coder'] = check_vllm(coder_endpoint, coder_model, os.getenv('NOVA_CODER_LLM_API_KEY'))
     ok = all(v['ok'] for v in results.values())
     if args.json:
         print(json.dumps({'ok': ok, 'checks': results}, indent=2))
