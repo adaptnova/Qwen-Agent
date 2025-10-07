@@ -19,3 +19,7 @@ This document tracks chronology of deployments, environment changes, and tooling
 - Patched Qwen-Agent to accept parser chunks where tool arguments stream as `None` and to respect `NOVA_LLM_GENERATE_CFG`.
 - Confirmed real tool execution works (`system_shell` returning `/data/Qwen-Agent`) with 17 s end-to-end latency due to thinking model.
 
+
+### 2025-10-07T00:20:06+0000 — CLI prompt updates
+- Refined Nova CLI system prompt to push tool-taking behavior.
+- (Pending) widen tool-trigger conditions as requested.

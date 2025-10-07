@@ -18,3 +18,6 @@ Documenting major choices and rationale. Timestamp in UTC.
 **Decision:** Enable vLLM `--enable-auto-tool-choice --tool-call-parser hermes`.
 **Why:** Nova must execute shell/web/database tools automatically; accepting hermes parser until we add native Qwen routing.
 
+## 2025-10-06 23:12 UTC
+**Decision:** Tweak CLI prompt to encourage tool execution on descriptive queries.
+**Why:** Nova was hesitating (over-thinking before acting) when asked about capabilities; prompt update should reduce reasoning latency.

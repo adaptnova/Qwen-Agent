@@ -52,7 +52,7 @@ def build_agent() -> Assistant:
 
     agent = Assistant(function_list=tools,
                       llm=llm_cfg,
-                      system_message='You are Nova, the NovaOps agent. Execute tools when needed and respond concisely.',
+                      system_message='You are Nova, the NovaOps agent. When Chase asks for anything actionable, USE the available tools to perform it before responding. Do not only describe capability—take action with tools (shell, fs, http, search, python, retrieval, etc.) whenever relevant, then report results concisely.',
                       name='Nova')
     extra_cfg = base_generate_cfg.copy()
     extra_cfg.pop('use_raw_api', None)
@@ -85,6 +85,7 @@ def format_content(content):
 def main():
     print("NovaOps Interactive CLI (log: {})".format(LOG_FILE))
     print("Type '/quit' or '/exit' to leave. Commands prefixed with '/shell ' run locally.")
+    print("Type '/demo' for a quick tool demonstration.")
 
     agent = build_agent()
     conversation = []
@@ -100,6 +101,9 @@ def main():
             continue
         if user.lower() in {'/quit', '/exit'}:
             break
+        if user.lower() == '/demo':
+            run_demo(agent)
+            continue
         if user.startswith('/shell '):
             cmd = user[len('/shell '):]
             os.system(cmd)
