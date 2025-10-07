@@ -21,3 +21,7 @@ Documenting major choices and rationale. Timestamp in UTC.
 ## 2025-10-06 23:12 UTC
 **Decision:** Tweak CLI prompt to encourage tool execution on descriptive queries.
 **Why:** Nova was hesitating (over-thinking before acting) when asked about capabilities; prompt update should reduce reasoning latency.
+
+## 2025-10-07 00:20
+**Decision:** Document Qwen3-Coder-30B-A3B-Instruct-FP8 and adjust Nova prompt for proactive tool execution.
+**Why:** Preparing to stand up the coder model requires precise deployment guidance; the prompt tweak ensures Nova responds with action instead of explanation.
