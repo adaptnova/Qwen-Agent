@@ -45,3 +45,8 @@ This document tracks chronology of deployments, environment changes, and tooling
 - Installed PostgreSQL 16, provisioned role `mlflow` and database `mlflow_db` for backend storage.
 - Deployed `mlflow.service` under systemd (port 5100) with env file `/data/mlflow/mlflow.env` and artifacts at `file:/data/mlflow/artifacts`.
 - Logged smoke run `mlflow-smoke` into experiment `Nova-Test`; tracking URI `http://10.0.1.1:5100`.
+
+### 2025-10-07T04:25:00+0000 — GitHub remote realignment
+- Repointed `novaremote` to `https://github.com/adaptnova/Qwen-Agent.git`, rebased main, and pushed pending commits.
+- Updated deployment docs and Forge request (`project/DEPLOYMENT.md`, `forge_request_coder.txt`) to reference the new repo path.
+- Added `project/runbooks/git_remote_reset.md` to codify the post-reset remote alignment procedure.

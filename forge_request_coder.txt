@@ -26,10 +26,10 @@ Forge — Deployment Request: Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8
    - Ensure directory perms `750`, file perms `640`. No git tracking.
 
 3. Install CLI + alias on server
-   - Clone/update this repo on the server (e.g., `/data/coders/Nova-Qwen-Agent`).
+   - Clone/update this repo on the server (e.g., `/data/coders/Qwen-Agent`).
    - Add to nova user’s `~/.bashrc`:
      ```
-     export PATH=/data/coders/Nova-Qwen-Agent:$PATH
+     export PATH=/data/coders/Qwen-Agent:$PATH
      ```
      (Reload shell or `source ~/.bashrc`.)
    - The CLI (`nn`) will now be available server-side for local testing.
@@ -45,7 +45,7 @@ Forge — Deployment Request: Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8
      Type=simple
      Environment=QWEN_AGENT_DEFAULT_WORKSPACE=/data/nova
      EnvironmentFile=-/data/secrets/nova.env
-     WorkingDirectory=/data/coders/Nova-Qwen-Agent
+     WorkingDirectory=/data/coders/Qwen-Agent
      ExecStart=/usr/bin/python3 run_server.py \
        --model_server "$NOVA_CODER_LLM_SERVER" \
        --llm "$NOVA_CODER_LLM_MODEL" \
@@ -62,7 +62,7 @@ Forge — Deployment Request: Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8
 5. Sanity test & receipts
    - With PATH set, run `nn` or `python scripts/nova_tool_sanity.py` from repo:
      ```
-     cd /data/coders/Nova-Qwen-Agent
+     cd /data/coders/Qwen-Agent
      NOVA_LLM_SERVER=$NOVA_CODER_LLM_SERVER \
        NOVA_LLM_MODEL=$NOVA_CODER_LLM_MODEL \
        python scripts/nova_tool_sanity.py

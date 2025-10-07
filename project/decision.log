@@ -33,3 +33,7 @@ Documenting major choices and rationale. Timestamp in UTC.
 ## 2025-10-07 03:55
 **Decision:** Standardize thinking-model benchmarking with MLflow experiment tracking.
 **Why:** We plan to trial multiple specialists; MLflow run/version history keeps latency, quality, and config artifacts organized from the outset.
+
+## 2025-10-07 04:23
+**Decision:** Move primary NovaOps GitHub remote to `adaptnova/Qwen-Agent` and treat `QwenLM/Qwen-Agent` as upstream only.
+**Why:** Ensures production pushes land in the AdaptNova org; runbook added so future resets realign remotes automatically.

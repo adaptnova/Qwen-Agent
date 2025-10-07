@@ -15,7 +15,7 @@ This guide describes how to deploy the Nova agent on an Ubuntu 24.04 host with r
 ## 2. Clone & Dependencies
 
 ```bash
-git clone https://github.com/ADAPT-Chase/Nova-Qwen-Agent.git /data/Qwen-Agent
+git clone https://github.com/adaptnova/Qwen-Agent.git /data/Qwen-Agent
 cd /data/Qwen-Agent
 pip install -r requirements-nova.txt
 ```
@@ -113,7 +113,7 @@ Manual checks:
 
 The repo monitors for changes and pushes to `novaremote` automatically. Configure Git remote if not already:
 ```bash
-git remote add novaremote https://github.com/ADAPT-Chase/Nova-Qwen-Agent.git
+git remote add novaremote https://github.com/adaptnova/Qwen-Agent.git
 ```
 
 ## 9. Optional
