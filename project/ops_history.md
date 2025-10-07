@@ -24,3 +24,8 @@ This document tracks chronology of deployments, environment changes, and tooling
 - Updated Nova CLI prompt so the agent proactively executes tools (even for capability queries).
 - Noted follow-up to widen tool-trigger conditions per Chase’s request.
 - Documented Qwen3-Coder-30B-A3B-Instruct-FP8 deployment details in `docs/qwen3_coder_30b_fp8.md` (context size, sampling, vLLM flags, tool-calling notes).
+
+### 2025-10-07T03:05:00+0000 — Coder router bundle handoff
+- Realigned defaults to internal Nova vLLM endpoint and Qwen3-Coder FP8 specialist across router/scripts.
+- Packaged `/data/nova/artifacts/nova_router_phase2/` with README, smoke script, and model reference.
+- Filed Forge launch request (`project/requests/forge_qwen3_coder_phase2.md`) and notified PlatformOps to begin provisioning.
