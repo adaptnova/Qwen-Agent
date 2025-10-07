@@ -67,7 +67,11 @@ Provision a Ray Serve deployment on the H200 cluster capable of hosting multiple
 - Ray Serve endpoint reachable with both specialists responding.
 - Report delivered to NovaOps with endpoint URL, authentication (if any), latency first-response numbers, and any constraints.
 
+## Follow-Up Actions
+- Coordinate with NovaOps once endpoint is live so MLflow-backed benchmarks (`scripts/nova_reasoner_benchmark.py --mlflow ...`) can start immediately.
+- Provide instructions for scaling replicas or adding additional thinking models if the initial evaluation warrants expansion.
+- Keep Ray dashboard accessible to NovaOps during the evaluation window for latency/health monitoring.
+
 ## Contact
 - Chase (NovaOps): chase@novaops.internal
 - Atlas (NovaOps): atlas@novaops.internal
-

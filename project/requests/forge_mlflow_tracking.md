@@ -50,7 +50,7 @@ Deploy an internal MLflow tracking server so NovaOps can log benchmark runs for 
    [Install]
    WantedBy=multi-user.target
    ```
-5. Optionally front with nginx + TLS cert; expose as `https://mlflow.nova.internal`.
+5. Front with nginx + TLS cert; expose as `https://mlflow.nova.internal` protected by Nova SSO (pending completion).
 6. Share connection details and token with NovaOps:
    - Tracking URI
    - Artifact root path/bucket
@@ -70,7 +70,11 @@ Deploy an internal MLflow tracking server so NovaOps can log benchmark runs for 
 - Ensure nightly backups for PostgreSQL database and artifact directory.
 - Provide Terraform/Ansible snippets if automation preferred.
 
+## Follow-Up Actions (Pending)
+- Complete SSO integration (Nova SSO OIDC client) and enforce auth on the reverse proxy.
+- Issue/renew TLS certificate (LetsEncrypt internal ACME or Nova PKI).
+- Update NovaOps with final public URL once front-end is live.
+
 ## Contact
 - Chase (NovaOps): chase@novaops.internal
 - Atlas (NovaOps): atlas@novaops.internal
-

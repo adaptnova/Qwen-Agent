@@ -50,3 +50,7 @@ This document tracks chronology of deployments, environment changes, and tooling
 - Repointed `novaremote` to `https://github.com/adaptnova/Qwen-Agent.git`, rebased main, and pushed pending commits.
 - Updated deployment docs and Forge request (`project/DEPLOYMENT.md`, `forge_request_coder.txt`) to reference the new repo path.
 - Added `project/runbooks/git_remote_reset.md` to codify the post-reset remote alignment procedure.
+
+### 2025-10-07T04:40:00+0000 — Ops cadence updates
+- Created `project/runbooks/ops_review_cadence.md`; weekly Ops review (Mondays 17:00 UTC) now includes git remote audit, DB health checks, MLflow tracker, and Ray Serve status.
+- Coordination reminder: prepare SSO/TLS reverse proxy for MLflow tracker and continue Ray Serve deployment per active Forge requests before running MLflow-backed benchmarks.
