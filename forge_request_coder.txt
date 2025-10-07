@@ -1,0 +1,72 @@
+Forge — Deployment Request: Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8
+=================================================================
+
+1. Provision vLLM server for coder model
+   - Model: Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8
+   - Start vLLM with (adjusted as needed for your environment):
+     ```
+     python -m vllm.entrypoints.openai.api_server \
+       --model Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8 \
+       --tensor-parallel-size 1 \
+       --enable-auto-tool-choice \
+       --tool-call-parser hermes \
+       --reasoning-parser qwen3 \
+       --host 0.0.0.0 \
+       --port 18010
+     ```
+   - After launch, `curl http://127.0.0.1:18010/v1/models` should list the coder model.
+
+2. Update secrets
+   - In `/data/secrets` (same share), create or extend `nova.env` with:
+     ```
+     NOVA_CODER_LLM_SERVER=http://10.0.1.1:18010/v1
+     NOVA_CODER_LLM_MODEL=Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8
+     NOVA_CODER_LLM_GENERATE_CFG={"function_choice":"auto","parallel_function_calls":true,"temperature":0.3,"top_p":0.9,"max_tokens":768}
+     ```
+   - Ensure directory perms `750`, file perms `640`. No git tracking.
+
+3. Install CLI + alias on server
+   - Clone/update this repo on the server (e.g., `/data/coders/Nova-Qwen-Agent`).
+   - Add to nova user’s `~/.bashrc`:
+     ```
+     export PATH=/data/coders/Nova-Qwen-Agent:$PATH
+     ```
+     (Reload shell or `source ~/.bashrc`.)
+   - The CLI (`nn`) will now be available server-side for local testing.
+
+4. Create systemd service for coder agent
+   - Suggested unit `/etc/systemd/system/nova-coder.service`:
+     ```
+     [Unit]
+     Description=Nova Coder Agent
+     After=network.target
+
+     [Service]
+     Type=simple
+     Environment=QWEN_AGENT_DEFAULT_WORKSPACE=/data/nova
+     EnvironmentFile=-/data/secrets/nova.env
+     WorkingDirectory=/data/coders/Nova-Qwen-Agent
+     ExecStart=/usr/bin/python3 run_server.py \
+       --model_server "$NOVA_CODER_LLM_SERVER" \
+       --llm "$NOVA_CODER_LLM_MODEL" \
+       --workstation_port 0 \
+       --max_ref_token 0
+     Restart=always
+     RestartSec=5
+
+     [Install]
+     WantedBy=multi-user.target
+     ```
+   - `sudo systemctl daemon-reload && sudo systemctl enable --now nova-coder.service`
+
+5. Sanity test & receipts
+   - With PATH set, run `nn` or `python scripts/nova_tool_sanity.py` from repo:
+     ```
+     cd /data/coders/Nova-Qwen-Agent
+     NOVA_LLM_SERVER=$NOVA_CODER_LLM_SERVER \
+       NOVA_LLM_MODEL=$NOVA_CODER_LLM_MODEL \
+       python scripts/nova_tool_sanity.py
+     ```
+   - Share the output/log so we can confirm tool execution.
+
+Please drop the internal IP/port used so we can reference it in routing.
