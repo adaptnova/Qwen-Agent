@@ -29,3 +29,8 @@ This document tracks chronology of deployments, environment changes, and tooling
 - Realigned defaults to internal Nova vLLM endpoint and Qwen3-Coder FP8 specialist across router/scripts.
 - Packaged `/data/nova/artifacts/nova_router_phase2/` with README, smoke script, and model reference.
 - Filed Forge launch request (`project/requests/forge_qwen3_coder_phase2.md`) and notified PlatformOps to begin provisioning.
+
+### 2025-10-07T03:40:00+0000 — Thinking fleet prep
+- Submitted Ray Serve request for reasoning specialist hosting (`project/requests/forge_reasoner_rayserve.md`).
+- Added benchmarking harness `scripts/nova_reasoner_benchmark.py` to log comparative latency/quality data.
+- Updated roadmap Milestone 2.2 to include Ray Serve deployment and benchmarking workflow.

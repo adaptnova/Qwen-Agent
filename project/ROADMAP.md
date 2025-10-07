@@ -23,15 +23,16 @@ Enable Nova to orchestrate multiple Qwen-family models, routing work to the best
 ### Milestone 2.2 — Reasoning Specialist (QwQ / Math)
 - **Target**: Begin once Milestone 2.1 is in staging; aim for completion +1 week.
 - **Deliverables**:
-  - Evaluation shortlist: Qwen/QwQ-32B, Qwen3-Math, or other reasoning-tuned models.
+  - Evaluation shortlist: Qwen/QwQ-32B, Qwen3-Math, Qwen/Qwen3-30B-A3B-Thinking-2507, or other reasoning-tuned models.
   - Benchmark results on curated reasoning/math tasks relevant to NovaOps (financial modeling, research synthesis, long-chain planning).
   - Optional integration as “Reasoner” tool-call target; invoked via router when reasoning depth or math confidence thresholds hit.
 - **Tasks**:
   1. Prepare evaluation dataset (internal tasks, open benchmarks, Nova transcripts).
-  2. Run comparative inference; capture latency, accuracy, hallucination rates.
-  3. Decide single model or ensemble; provision endpoint.
-  4. Extend router rules: detect reasoning-heavy prompts (keywords, chain length, user tag) and invoke reasoner model.
-  5. Validate: multi-step planning tasks, math stress tests, compliance review with Ops.
+  2. Stand up Ray Serve deployment on H200 with replicas for the Nova generalist and candidate thinking models (per `project/requests/forge_reasoner_rayserve.md`).
+  3. Run comparative inference using `scripts/nova_reasoner_benchmark.py`; capture latency, accuracy, hallucination rates; store reports under `/data/nova/reports/`.
+  4. Decide single model or ensemble; provision endpoint.
+  5. Extend router rules: detect reasoning-heavy prompts (keywords, chain length, user tag) and invoke reasoner model.
+  6. Validate: multi-step planning tasks, math stress tests, compliance review with Ops.
 - **Dependencies**: Access to candidate model weights/endpoints, GPU budget for benchmarking.
 
 ### Milestone 2.3 — Multi-Model “Squad” Pattern

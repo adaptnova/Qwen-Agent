@@ -25,3 +25,7 @@ Documenting major choices and rationale. Timestamp in UTC.
 ## 2025-10-07 00:20
 **Decision:** Document Qwen3-Coder-30B-A3B-Instruct-FP8 and adjust Nova prompt for proactive tool execution.
 **Why:** Preparing to stand up the coder model requires precise deployment guidance; the prompt tweak ensures Nova responds with action instead of explanation.
+
+## 2025-10-07 03:38
+**Decision:** Evaluate Qwen/Qwen3-30B-A3B-Thinking-2507 via Ray Serve alongside the generalist thinking model.
+**Why:** Building a multi-model “thinking team” demands side-by-side latency and quality metrics; Ray Serve gives us fast swap capability on a single H200 during tests.
