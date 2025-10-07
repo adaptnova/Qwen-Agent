@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import pathlib
 import time
 import uuid
@@ -12,6 +13,13 @@ from dataclasses import dataclass, asdict
 from typing import Any, Dict, List
 
 import requests
+
+try:
+    import mlflow  # type: ignore
+
+    HAS_MLFLOW = True
+except Exception:  # pylint: disable=broad-except
+    HAS_MLFLOW = False
 
 DEFAULT_TASKS: List[Dict[str, Any]] = [
     {
@@ -121,7 +129,18 @@ def main():
                         help="Optional path to JSON file containing task objects.")
     parser.add_argument("--output", default=None,
                         help="Optional output path; defaults to /data/nova/reports/nova_reasoner_<timestamp>.jsonl")
+    parser.add_argument("--mlflow", action="store_true",
+                        help="Log runs to MLflow (requires mlflow package).")
+    parser.add_argument("--mlflow-uri", default=None,
+                        help="MLflow tracking URI (falls back to env MLFLOW_TRACKING_URI).")
+    parser.add_argument("--mlflow-experiment", default="Nova-Thinking-Benchmarks",
+                        help="MLflow experiment name.")
+    parser.add_argument("--mlflow-run-name", default=None,
+                        help="Root MLflow run name.")
     args = parser.parse_args()
+
+    if args.mlflow and not HAS_MLFLOW:
+        raise SystemExit("MLflow logging requested but mlflow package is not installed.")
 
     tasks = load_tasks(args.tasks_json)
     reports_dir = ensure_reports_dir()
@@ -142,6 +161,23 @@ def main():
     )
 
     results: List[RunResult] = []
+    use_mlflow = bool(args.mlflow and HAS_MLFLOW)
+
+    if use_mlflow:
+        tracking_uri = args.mlflow_uri or os.getenv("MLFLOW_TRACKING_URI")
+        if tracking_uri:
+            mlflow.set_tracking_uri(tracking_uri)
+        mlflow.set_experiment(args.mlflow_experiment)
+        run_name = args.mlflow_run_name or f"nova_reasoner_{timestamp}"
+        mlflow.start_run(run_name=run_name)
+        mlflow.log_params({
+            "generalist_model": args.generalist_model,
+            "generalist_endpoint": args.generalist_endpoint,
+            "thinker_model": args.thinker_model,
+            "thinker_endpoint": args.thinker_endpoint,
+            "task_file": args.tasks_json or "builtin",
+        })
+
     for task in tasks:
         task_id = task.get("id") or f"task_{len(results)}"
         prompt = task["prompt"]
@@ -168,14 +204,33 @@ def main():
                 )
             results.append(result)
             print(f"  latency={result.latency_s:.2f}s tokens={result.total_tokens} finish={result.finish_reason}")
+            if use_mlflow:
+                with mlflow.start_run(run_name=f"{task_id}-{cfg.label}", nested=True):
+                    mlflow.log_params({
+                        "task_id": task_id,
+                        "model_label": cfg.label,
+                        "model_name": cfg.name,
+                        "endpoint": cfg.endpoint,
+                        "max_tokens": max_tokens,
+                    })
+                    mlflow.log_metrics({
+                        "latency_s": result.latency_s,
+                        "prompt_tokens": result.prompt_tokens or 0,
+                        "completion_tokens": result.completion_tokens or 0,
+                        "total_tokens": result.total_tokens or 0,
+                    })
+                    mlflow.log_text(result.output_text, f"outputs/{task_id}_{cfg.label}.txt")
 
     with open(output_path, "w", encoding="utf-8") as fh:
         for item in results:
             fh.write(json.dumps(asdict(item)) + "\n")
+
+    if use_mlflow:
+        mlflow.log_artifact(str(output_path), artifact_path="reports")
+        mlflow.end_run()
 
     print(f"\nSaved {len(results)} results to {output_path}")
 
 
 if __name__ == "__main__":
     main()
-

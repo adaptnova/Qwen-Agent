@@ -34,3 +34,7 @@ This document tracks chronology of deployments, environment changes, and tooling
 - Submitted Ray Serve request for reasoning specialist hosting (`project/requests/forge_reasoner_rayserve.md`).
 - Added benchmarking harness `scripts/nova_reasoner_benchmark.py` to log comparative latency/quality data.
 - Updated roadmap Milestone 2.2 to include Ray Serve deployment and benchmarking workflow.
+
+### 2025-10-07T03:55:00+0000 — MLflow instrumentation
+- Enabled optional MLflow logging in `scripts/nova_reasoner_benchmark.py` for per-run metrics and artifact capture.
+- Decided to manage thinking-model experiment history through MLflow from day one.

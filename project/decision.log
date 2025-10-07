@@ -29,3 +29,7 @@ Documenting major choices and rationale. Timestamp in UTC.
 ## 2025-10-07 03:38
 **Decision:** Evaluate Qwen/Qwen3-30B-A3B-Thinking-2507 via Ray Serve alongside the generalist thinking model.
 **Why:** Building a multi-model “thinking team” demands side-by-side latency and quality metrics; Ray Serve gives us fast swap capability on a single H200 during tests.
+
+## 2025-10-07 03:55
+**Decision:** Standardize thinking-model benchmarking with MLflow experiment tracking.
+**Why:** We plan to trial multiple specialists; MLflow run/version history keeps latency, quality, and config artifacts organized from the outset.
