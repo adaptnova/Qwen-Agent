@@ -39,3 +39,9 @@ This document tracks chronology of deployments, environment changes, and tooling
 - Enabled optional MLflow logging in `scripts/nova_reasoner_benchmark.py` for per-run metrics and artifact capture.
 - Decided to manage thinking-model experiment history through MLflow from day one.
 - Raised MLflow tracking server request (`project/requests/forge_mlflow_tracking.md`) for PlatformOps provisioning.
+
+### 2025-10-07T04:11:00+0000 — MLflow tracking live
+- Created `/data/mlflow` virtualenv + artifact store owned by `novaops`; installed `mlflow[extras]==2.16.0`, `psycopg2-binary`, and `gunicorn`.
+- Installed PostgreSQL 16, provisioned role `mlflow` and database `mlflow_db` for backend storage.
+- Deployed `mlflow.service` under systemd (port 5100) with env file `/data/mlflow/mlflow.env` and artifacts at `file:/data/mlflow/artifacts`.
+- Logged smoke run `mlflow-smoke` into experiment `Nova-Test`; tracking URI `http://10.0.1.1:5100`.
