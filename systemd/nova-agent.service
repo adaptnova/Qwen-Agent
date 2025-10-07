@@ -9,7 +9,7 @@ Environment=QWEN_AGENT_DEFAULT_WORKSPACE=/data/nova
 # Optional: load consolidated env (DB keys, API keys)
 EnvironmentFile=-/data/secrets/nova.env
 WorkingDirectory=/data/Qwen-Agent
-ExecStart=/usr/bin/python3 run_server.py -m http://89.169.109.59:8000/v1 -l Qwen/Qwen3-VL-30B-A3B-Thinking-FP8 -s 0.0.0.0
+ExecStart=/usr/bin/python3 run_server.py -m http://10.0.1.1:18000/v1 -l Qwen/Qwen3-VL-30B-A3B-Thinking-FP8 -s 0.0.0.0
 Restart=always
 RestartSec=5
 StandardOutput=journal
@@ -17,4 +17,3 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
-

@@ -8,7 +8,7 @@ This guide describes how to deploy the Nova agent on an Ubuntu 24.04 host with r
 - Python 3.10+
 - Git, curl, systemd (default on Ubuntu)
 - Network egress to:
-  - vLLM endpoint (`http://89.169.109.59:8000/v1` by default)
+  - vLLM endpoint (`http://10.0.1.1:18000/v1` by default)
   - Serper/Tavily APIs (if used)
   - Target databases/search backends
 
@@ -85,7 +85,7 @@ Daily cleanup runs via `nova-cleanup.timer`. Adjust TTL via `NOVA_CLEAN_TTL_DAYS
 2. Export coder env vars:
    ```bash
    export NOVA_CODER_LLM_SERVER=http://127.0.0.1:8010/v1
-   export NOVA_CODER_LLM_MODEL=Qwen/Qwen3-Coder-Plus-32B
+   export NOVA_CODER_LLM_MODEL=Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8
    ```
 3. Use `examples/nova_router.py` to route code-heavy tasks:
    ```bash

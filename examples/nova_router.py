@@ -25,7 +25,7 @@ def _coder_tools() -> List[str]:
 
 
 def build_generalist_agent() -> Assistant:
-    llm_server = os.getenv('NOVA_LLM_SERVER', 'http://89.169.109.59:8000/v1')
+    llm_server = os.getenv('NOVA_LLM_SERVER', 'http://10.0.1.1:18000/v1')
     llm_model = os.getenv('NOVA_LLM_MODEL', 'Qwen/Qwen3-VL-30B-A3B-Thinking-FP8')
     llm_cfg = {
         'model': llm_model,
@@ -46,7 +46,7 @@ def build_generalist_agent() -> Assistant:
 
 def build_coder_agent() -> Assistant:
     coder_server = os.getenv('NOVA_CODER_LLM_SERVER', 'http://127.0.0.1:8010/v1')
-    coder_model = os.getenv('NOVA_CODER_LLM_MODEL', 'Qwen/Qwen3-Coder-Plus-32B')
+    coder_model = os.getenv('NOVA_CODER_LLM_MODEL', 'Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8')
     llm_cfg = {
         'model': coder_model,
         'model_type': 'oai',
@@ -79,7 +79,7 @@ Reply: <leave blank>
 '''
 
     def __init__(self, agents: List[Assistant]):
-        llm_server = os.getenv('NOVA_ROUTER_LLM_SERVER', os.getenv('NOVA_LLM_SERVER', 'http://89.169.109.59:8000/v1'))
+        llm_server = os.getenv('NOVA_ROUTER_LLM_SERVER', os.getenv('NOVA_LLM_SERVER', 'http://10.0.1.1:18000/v1'))
         llm_model = os.getenv('NOVA_ROUTER_LLM_MODEL', os.getenv('NOVA_LLM_MODEL', 'Qwen/Qwen3-VL-30B-A3B-Thinking-FP8'))
         llm_cfg = {
             'model': llm_model,

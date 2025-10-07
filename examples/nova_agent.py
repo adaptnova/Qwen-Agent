@@ -28,7 +28,7 @@ def build_agent() -> Assistant:
     workspace = os.getenv('QWEN_AGENT_DEFAULT_WORKSPACE', '/data/nova')
     os.makedirs(workspace, exist_ok=True)
 
-    llm_server = os.getenv('NOVA_LLM_SERVER', 'http://89.169.109.59:8000/v1')  # default to provided vLLM endpoint
+    llm_server = os.getenv('NOVA_LLM_SERVER', 'http://10.0.1.1:18000/v1')  # default to internal vLLM endpoint
     llm_model = os.getenv('NOVA_LLM_MODEL', 'Qwen/Qwen3-VL-30B-A3B-Thinking-FP8')
 
     llm_cfg = {

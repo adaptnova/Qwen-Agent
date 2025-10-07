@@ -76,7 +76,7 @@ def parse_args():
     ap.add_argument('--control-host', default='127.0.0.1')
     ap.add_argument('--control-port', type=int, default=int(os.getenv('NOVA_CONTROL_PORT', '7125')))
     ap.add_argument('--workspace', default=os.getenv('QWEN_AGENT_DEFAULT_WORKSPACE', '/data/nova'))
-    ap.add_argument('--endpoint', default=os.getenv('NOVA_LLM_SERVER', 'http://89.169.109.59:8000/v1'))
+    ap.add_argument('--endpoint', default=os.getenv('NOVA_LLM_SERVER', 'http://10.0.1.1:18000/v1'))
     ap.add_argument('--model', default=os.getenv('NOVA_LLM_MODEL', 'Qwen/Qwen3-VL-30B-A3B-Thinking-FP8'))
     ap.add_argument('--api-key', default=os.getenv('NOVA_LLM_API_KEY'))
     ap.add_argument('--json', action='store_true')

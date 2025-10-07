@@ -22,23 +22,22 @@ Augment Nova with a Qwen3-Coder specialist and routing logic that detects code-h
 
 ### M2.1-A — Infrastructure Readiness
 - [ ] Coordinate with serving team for Qwen3-Coder vLLM endpoint (e.g., `http://<host>:<port>/v1`).
-- [ ] Add config placeholders (`NOVA_CODER_LLM_SERVER`, `NOVA_CODER_LLM_MODEL`).
+- [x] Add config placeholders (`NOVA_CODER_LLM_SERVER`, `NOVA_CODER_LLM_MODEL`).
 - [ ] Update requirements if additional packages are needed (none expected).
 
 ### M2.1-B — Router Implementation
 - [x] Create spec (this document).
-- [ ] Implement `examples/nova_router.py` showcasing router usage.
-- [ ] Expose config via env variables & optional YAML.
-- [ ] Add detection heuristics (keywords like “code”, “python”, file diff) and fallback to generalist.
-- [ ] Tag transcript events with `model=generalist/coder` for audit.
+- [x] Implement `examples/nova_router.py` showcasing router usage.
+- [x] Expose config via env variables & optional YAML.
+- [x] Add detection heuristics (keywords like “code”, “python”, file diff) and fallback to generalist.
+- [x] Tag transcript events with `model=generalist/coder` for audit.
 
 ### M2.1-C — Testing & Docs
 - [ ] Add instructions/tests: run router demo, ensure coder path hits coder model.
-- [ ] Update `project/DEPLOYMENT.md` with multi-model section.
+- [x] Update `project/DEPLOYMENT.md` with multi-model section.
 - [ ] Add roadmap status once completed.
 
 ## Open Questions
 - Final coder endpoint & authentication? (TBD by infra.)
 - Do we need strict policy gating (e.g., only allow coder to run `system_shell` in code workspaces)? Possibly Phase 2.3 policy engine.
 - Should reasoning model integration follow same router pattern (likely yes; consistent architecture).
-

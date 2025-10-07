@@ -13,7 +13,7 @@ def build_agent() -> Assistant:
     llm_cfg = {
         'model': os.getenv('NOVA_LLM_MODEL', 'Qwen/Qwen3-VL-30B-A3B-Thinking-FP8'),
         'model_type': 'oai',
-        'model_server': os.getenv('NOVA_LLM_SERVER', 'http://89.169.109.59:18000/v1'),
+        'model_server': os.getenv('NOVA_LLM_SERVER', 'http://10.0.1.1:18000/v1'),
         'generate_cfg': {
             'parallel_function_calls': False,
             'function_choice': 'none',
