@@ -28,7 +28,36 @@ the [BasicDocQA](../qwen_agent/agents/doc_qa/basic_doc_qa.py) returns a message 
 
 These types of Agents have relatively fixed response patterns and are suited for fairly specific use cases.
 
-### 1.1. Assistant Class
+### 1.1. Agent lifecycle and conversation loop
+Every Agent follows the same high-level conversation loop:
+
+1. **Message preparation** – The agent merges the external `messages` argument with any default system instructions and previously stored context (memory, files, RAG chunks, etc.).
+2. **LLM deliberation** – The `_call_llm` helper is invoked with the current dialogue state. The returned candidate may be a plain natural-language response or a structured tool call.
+3. **Tool arbitration** – If the LLM proposes a `function_call`, the base class automatically dispatches it through `_call_tool`, which resolves tool names from the `function_list` registry (strings, configs, or `BaseTool` instances). Tool outputs are appended to the conversation the same way as human/assistant messages, so downstream turns see consistent state.
+4. **Streaming and yielding** – Because `Agent.run` exposes a generator, partial thoughts, tool calls, or step-by-step plans can be streamed to the caller. This is useful when wiring agents to UIs or logging systems.
+5. **Loop termination** – The loop continues until the `_run` implementation decides that no further tool or LLM turns are required (for instance after returning a final assistant message).
+
+This lifecycle is consistent whether the agent controls a single LLM or orchestrates other nested agents. Subclasses focus on implementing `_run` to describe the control flow, while the base class takes care of shared concerns such as logging, tracing, and error propagation.
+
+### 1.2. Attaching tools to an agent
+Tools are optional, but they unlock the “reason + act” pattern. An agent can mix-and-match tools that are declared in three complementary ways:
+
+- **String shortcuts** reference built-in tool factories (e.g., `'code_interpreter'`, `'image_gen'`).
+- **Configuration dictionaries** describe how to construct a tool lazily, which is useful when you need to pass credentials or per-deployment settings.
+- **`BaseTool` subclasses** let you plug fully custom Python implementations with arbitrary side effects.
+
+When the agent receives a tool call from the LLM, it locates the matching tool object, validates arguments against its schema, executes it, and injects a synthetic `role="function"` message into the transcript. Because the same transcript is fed back into later LLM calls, the model can chain multiple tools, reflect on the results, and ultimately craft the final natural-language answer. You can mix tools that operate on different modalities (text, image, web browsing, code execution) within the same agent, allowing very rich behaviors without manual orchestration.
+
+### 1.3. Combining agents with memory, files, and retrieval
+Besides tool registries, agents accept optional `files`, `knowledge`, and memory stores. During initialization, these inputs are pre-processed and exposed to the agent workflow through helper methods:
+
+- `files` can be local paths or URLs; file readers chunk the content and make it queryable by the agent.
+- Memory backends provide persistent conversation logs or per-user profiles that can be reloaded across sessions.
+- Retrieval helpers (RAG) transparently augment the prompt with the most relevant snippets, so the agent can cite documents while answering.
+
+This means you can deploy multiple agents that share the same memory store but have different tool lists or LLM models. They stay logically separate—each agent instance owns its prompt, tool registry, and persona—but they can collaborate by exchanging messages or by being orchestrated via a controller such as `GroupChat`.
+
+### 1.4. Assistant Class
 We offer a generic Agent class: the [Assistant](../qwen_agent/agents/assistant.py) class,
 which, when directly instantiated, can handle the majority of Single-Agent tasks.
 Features:
@@ -75,7 +104,7 @@ for response in bot.run(messages=messages):
 In the [examples](../examples) directory,
 we provide more Single-Agent use cases developed based on the Assistant class.
 
-### 1.2. GroupChat Class
+### 1.5. GroupChat Class
 We also provide a generic Multi-Agent class: the [GroupChat](../qwen_agent/agents/group_chat.py) class. This class manages a list of Agents and automatically maintains their speech orders.
 The features of this class include:
 - Upon receiving external input, it automatically coordinates the speaking order of the built-in Agents and sequentially returns their responses to the user;
@@ -165,7 +194,7 @@ class VisualStorytelling(Agent):
             yield response + rsp
 ```
 
-### 2.2. Non nested development
+### 2.2. Non-nested development
 
 In this example, we utilize the fundamental `_call_llm(...)` function to invoke an LLM or Tool.
 The workflow implemented by this DocQA involves concatenating the provided reference material into the built-in Prompt as a System Message,
@@ -217,3 +246,21 @@ class DocQA(Agent):
 ```
 
 Examples of using the `_call_llm(...)` and `_call_tool(...)` functions in combination to call LLMs and Tools can be found by examining the implementation of [ReActChat](../qwen_agent/agents/react_chat.py) and [Assistant](../qwen_agent/agents/assistant.py).
+
+### 2.3. Collaboration patterns and best practices
+
+Multi-agent setups are most powerful when each participant has a narrow responsibility and a clear hand-off contract. Qwen-Agent provides several collaboration patterns out of the box:
+
+- **Round-robin deliberation with `GroupChat`** – Register a list of agents (including a user proxy) and the controller will automatically decide who speaks next. Each agent receives the entire conversation history, so they can react to each other's tool results or verbal updates.
+- **Supervisor / worker hierarchies** – One agent (often an `Assistant` or a lightweight planner) can call other agents as tools by delegating through their `run` methods, as shown in the `VisualStorytelling` example. This works well for long workflows where you want human-readable reasoning interleaved with executable actions.
+- **Tool-specialist hybrids** – You can expose other agents as tools by wrapping their `run` method in a `BaseTool`. This lets a top-level assistant decide whether to call a symbolic solver agent, a browsing agent, or a creative writing agent based on the prompt.
+
+When designing collaborations, keep in mind the following recommendations:
+
+1. **Keep prompts focused** – Give each agent a concise system message that describes its role, available tools, and exit conditions. Avoid duplicating global rules; instead, pass shared constraints through the conversation or memory store.
+2. **Control recursion** – Because agents can call other agents (which can in turn call tools), make sure to set reasonable stop criteria (max turns, max tool calls) to prevent runaway loops.
+3. **Log intermediate outputs** – Streaming responses from `Agent.run` make it easy to surface intermediate steps in a UI or logfile. This is essential for debugging complex collaborations.
+4. **Share long-term memory intentionally** – If two agents should remember the same facts, configure them with the same memory backend. If their responsibilities are orthogonal, give them separate stores to avoid prompt bloat.
+5. **Test roles independently** – Before wiring agents together, run each agent in isolation with representative prompts. This ensures the combined system is predictable once collaboration is enabled.
+
+By following these guidelines you can create teams of agents that are both modular and tightly coordinated, capable of switching between tool usage, natural-language dialogue, and specialized reasoning flows without duplicating orchestration code.
