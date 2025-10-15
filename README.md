@@ -35,6 +35,7 @@ It also comes with example applications such as Browser Assistant, Code Interpre
 Now Qwen-Agent plays as the backend of [Qwen Chat](https://chat.qwen.ai/).
 
 # News
+* 🔥🔥🔥 Oct 14, 2025: Added [Qwen3 Thinking Team Demo](./examples/qwen3_thinking_team.py) showcasing an orchestrated multi-agent workflow on local Qwen3-4B thinking endpoints.
 * 🔥🔥🔥 Sep 23, 2025: Added [Qwen3-VL Tool-call Demo](./examples/cookbook_think_with_images.ipynb), supporting tools such as zoom in, image search, and web search.
 * Jul 23, 2025: Add [Qwen3-Coder Tool-call Demo](./examples/assistant_qwen3_coder.py); Added native API tool call interface support, such as using vLLM's built-in tool call parsing.
 * May 1, 2025: Add [Qwen3 Tool-call Demo](./examples/assistant_qwen3.py), and add [MCP Cookbooks](./examples/).
@@ -79,6 +80,30 @@ variable `DASHSCOPE_API_KEY` to your unique DashScope API key.
 Specifically, consult the [vLLM](https://github.com/QwenLM/Qwen2?tab=readme-ov-file#vllm) section for high-throughput GPU deployment or the [Ollama](https://github.com/QwenLM/Qwen2?tab=readme-ov-file#ollama) section for local CPU (+GPU) deployment.
 For the QwQ and Qwen3 model, it is recommended to **do not** add the `--enable-auto-tool-choice` and `--tool-call-parser hermes` parameters, as Qwen-Agent will parse the tool outputs from vLLM on its own.
 For Qwen3-Coder, it is recommended to enable both of the above parameters, use vLLM's built-in tool parsing, and combine with the `use_raw_api` parameter [usage](#how-to-pass-llm-parameters-to-the-agent).
+
+## Example: Local Qwen3 Thinking Team
+
+The script [examples/qwen3_thinking_team.py](./examples/qwen3_thinking_team.py) spins up a chief orchestrator who coordinates
+specialists (research, coding, analytics, and narrative polish) and routes work between them. Every member uses its own
+Qwen3-4B thinking model instance that is served through an OpenAI-compatible API on port `8000`.
+
+1. Launch your local server (vLLM/SGLang/FastChat) with `--host 0.0.0.0 --port 8000` and a Qwen3 reasoning checkpoint, e.g.
+   `Qwen3-4B-Instruct`, ensuring the API implements `/v1/chat/completions` and accepts `enable_thinking`.
+2. Export `QWEN_AGENT_API_KEY` if the gateway enforces authentication. Optional overrides include `QWEN_AGENT_MODEL`,
+   `QWEN_AGENT_SERVER`, and `QWEN_AGENT_ENABLE_THINKING`.
+3. Run the orchestrated demo in the terminal:
+
+   ```bash
+   python examples/qwen3_thinking_team.py --prompt "Draft a product launch plan for a smart home hub"
+   ```
+
+   or launch the GUI:
+
+   ```bash
+   python examples/qwen3_thinking_team.py --gui
+   ```
+
+Use `--no-thinking` to fall back to standard chat completions if your deployment does not expose the reasoning traces.
 
 ## Developing Your Own Agent
 
