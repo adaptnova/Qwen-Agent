@@ -25,9 +25,23 @@ class Qwen3CLI:
         self.session_file = "qwen3_session.json"
         self.max_context_tokens = 260000  # Leave room for response
         self.system_prompt = """You are Qwen3-30B-A3B-Thinking, a helpful AI assistant with 262,144 token context window.
-You have access to various tools and can handle long conversations efficiently.
-When users type commands starting with '/', they are using special CLI tools.
-Be helpful, accurate, and conversational."""
+You have access to various tools and can use them AUTOMATICALLY when needed.
+
+AUTOMATIC TOOL USAGE:
+- When users ask for current information, news, or research → USE web_search()
+- When users ask math problems, calculations, or equations → USE solve_math()
+- When users ask to run code, execute programs, or test algorithms → USE execute_code()
+- When users ask for translations between languages → USE translate_text()
+- When users ask to read files → USE read_file()
+- When users ask to write files → USE write_file()
+
+You can invoke tools by describing the action in your response, like:
+"Let me search for current information about that..." → triggers web_search
+"Let me calculate that for you..." → triggers solve_math
+"Let me execute that code..." → triggers execute_code
+"Let me translate that to Spanish..." → triggers translate_text
+
+Be proactive in using tools when they would be helpful. Don't ask for permission - just use them naturally in conversation."""
 
     def load_session(self):
         """Load previous conversation session."""
@@ -57,58 +71,44 @@ Be helpful, accurate, and conversational."""
     def show_help(self):
         """Display help information."""
         help_text = """
-🚀 Qwen3 Interactive CLI - 262K Context Window
+🚀 Qwen3 Interactive CLI - 262K Context Window - AUTONOMOUS TOOLS
 
-💬 CONVERSATION:
-  hi, hello                 - Start conversation
-  clear                     - Clear conversation history
-  history                   - Show conversation history
-  save                      - Save current session
-  context                   - Show context usage info
+💬 CONVERSATION (Natural Language - No Commands Needed!):
+  Just talk normally! The AI automatically uses tools when needed.
 
-📁 FILE TOOLS:
+🤖 AUTONOMOUS AI TOOLS (Automatically Triggered):
+  🔍 Web Search    - Ask: "search for latest AI news" or "what's happening with quantum computing?"
+  🧮 Math Solver   - Ask: "what is 2^10 + 5 * 3?" or "solve x^2 = 16"
+  💻 Code Runner  - Ask: "run this code: print('hello')" or "execute python: [code]"
+  🌍 Translator   - Ask: "translate 'hello' to Spanish" or "how do you say 'thank you' in French?"
+  📄 File Reader  - Ask: "read the README file" or "check config.json"
+
+📁 MANUAL FILE COMMANDS:
   /read <file>              - Read a file
   /write <file> <content>   - Write content to file
   /list <dir>               - List directory contents
-  /search <dir> <pattern>   - Search for files/patterns
 
-🖥️  SYSTEM TOOLS:
+🖥️  SYSTEM COMMANDS:
   /status                   - Show server and system status
   /gpu                      - Show GPU information
-  /ps                       - Show running processes
-  /net                      - Show network status
-
-🌐 NETWORK TOOLS:
-  /curl <url>               - Make HTTP request
-  /ping <host>              - Ping a host
-
-🎯 AI TOOLS:
-  /websearch <query>        - Search for information using AI
-  /math <expression>        - Solve math problems
-  /analyze <file>           - AI analysis of file
-  /summary <text>           - Summarize text
-  /code <language> <task>   - Generate or execute code
-  /translate <lang> <text>  - Translate text
-
-⚙️  SETTINGS:
   /model                    - Show current model info
 
 🚪 EXIT:
   quit, exit, /q           - Exit CLI
 
-💡 USAGE EXAMPLES:
-  /websearch latest AI news
-  /math "2^10 + 5 * 3"
-  /code python "print('Hello, World!')"
-  /translate spanish "Hello, how are you?"
-  /analyze README.md
+💡 NATURAL LANGUAGE EXAMPLES (Just talk normally!):
+  "Search for recent developments in AI"
+  "What's 25 * 4 + 100?"
+  "Run this python code: print('Hello, autonomous tools!')"
+  "How do you say 'TeamADAPT rocks' in Spanish?"
+  "Read the SECURITY_REPORT.md file"
 
 🔥 FEATURES:
   • 262,144 token context window
-  • Real-time streaming responses
-  • Session persistence
-  • Working AI tools (search, math, code, translate)
+  • AUTONOMOUS tool usage - No slash commands needed!
+  • AI decides when to use tools automatically
   • Safe code execution sandbox
+  • Natural conversation flow
         """
         print(help_text)
 
@@ -647,7 +647,7 @@ Be helpful, accurate, and conversational."""
             print(f"❌ Error getting model info: {e}")
 
     def chat_with_ai(self, user_input: str):
-        """Have a conversation with the AI."""
+        """Have a conversation with the AI with automatic tool usage."""
         try:
             self.add_to_history('user', user_input)
 
@@ -674,8 +674,147 @@ Be helpful, accurate, and conversational."""
             print()
             self.add_to_history('assistant', ai_response)
 
+            # Automatic tool detection and execution
+            self.detect_and_execute_tools(ai_response, user_input)
+
         except Exception as e:
             print(f"❌ Error communicating with AI: {e}")
+
+    def detect_and_execute_tools(self, ai_response: str, user_input: str):
+        """Detect tool usage intent and automatically execute tools."""
+        import re
+
+        # Convert to lowercase for pattern matching
+        response_lower = ai_response.lower()
+        user_lower = user_input.lower()
+
+        # Web search detection
+        search_patterns = [
+            r"let me search|let me look up|let me find|searching for|looking up",
+            r"latest.*news|current.*information|recent.*developments",
+            r"what.*happening|what.*new|latest.*research"
+        ]
+
+        # Math calculation detection
+        math_patterns = [
+            r"let me calculate|let me solve|let me compute|calculating|solving",
+            r"what.*is.*\d|how much|calculate|solve.*equation",
+            r"\+|\-|\*|\/|\^|sqrt|factorial"
+        ]
+
+        # Code execution detection
+        code_patterns = [
+            r"let me execute|let me run|let me test|executing|running",
+            r"code.*execution|test.*code|run.*program",
+            r"python.*code|javascript.*code|execute.*code"
+        ]
+
+        # Translation detection
+        translate_patterns = [
+            r"let me translate|translating to|translate.*to",
+            r"in.*spanish|in.*french|in.*german|in.*italian",
+            r"how.*say.*in|what.*is.*in.*language"
+        ]
+
+        # File operations detection
+        file_patterns = [
+            r"let me read|let me open|reading.*file|opening.*file",
+            r"let me write|let me save|writing.*file|saving.*file",
+            r"check.*file|analyze.*file|read.*content"
+        ]
+
+        # Check each tool type and execute if detected
+        if any(re.search(pattern, response_lower) for pattern in search_patterns) or \
+           any(re.search(pattern, user_lower) for pattern in search_patterns):
+            # Extract search query from user input
+            query = user_input
+            if any(word in user_lower for word in ['search', 'find', 'look up', 'news', 'information']):
+                # Clean up the query - remove search-related words
+                query = re.sub(r'(search|find|look up|for|about|latest|current|recent)', '', user_input, flags=re.IGNORECASE).strip()
+            if query:
+                print(f"\n🔍 *Automatically searching for: {query}*")
+                self.web_search(query)
+
+        elif any(re.search(pattern, response_lower) for pattern in math_patterns) or \
+             any(re.search(pattern, user_lower) for pattern in math_patterns):
+            # Extract math expression - look for the most complete expression
+            math_expr = user_input
+            # Try multiple patterns for math expressions
+            math_match = re.search(r'([^?]*)\?$', user_input)  # Before question mark
+            if not math_match:
+                math_match = re.search(r'what\s+is\s+([^\?]+)', user_input, re.IGNORECASE)
+            if not math_match:
+                math_match = re.search(r'calculate\s+([^\?]+)', user_input, re.IGNORECASE)
+            if not math_match:
+                math_match = re.search(r'solve\s+([^\?]+)', user_input, re.IGNORECASE)
+            if not math_match:
+                math_match = re.search(r'([\d\+\-\*\/\^\(\)\.\s]+)', user_input)
+
+            if math_match:
+                math_expr = math_match.group(1).strip()
+                # Clean up common words
+                math_expr = re.sub(r'(what\s+is|calculate|solve)', '', math_expr, flags=re.IGNORECASE).strip()
+
+            if math_expr and any(char.isdigit() for char in math_expr):
+                print(f"\n🧮 *Automatically calculating: {math_expr}*")
+                self.solve_math(math_expr)
+
+        elif any(re.search(pattern, response_lower) for pattern in code_patterns) or \
+             any(re.search(pattern, user_lower) for pattern in code_patterns):
+            # Extract code and language
+            code_match = re.search(r'```(\w+)?\n?(.*?)\n?```', user_input, re.DOTALL)
+            if code_match:
+                lang = code_match.group(1) or 'python'
+                code = code_match.group(2).strip()
+                print(f"\n💻 *Automatically executing {lang} code*")
+                self.execute_code(lang, code)
+            else:
+                # Try to find code after "run this", "execute this", "run:", "execute:", etc.
+                code_match = re.search(r'(?:run|execute)\s+(?:this|:)\s*(.+)', user_input, re.IGNORECASE)
+                if code_match:
+                    code = code_match.group(1).strip()
+                    # Check if it's quoted - if so, extract the quoted content
+                    quote_match = re.search(r'["\']([^"\']+)["\']', code)
+                    if quote_match:
+                        code = quote_match.group(1)
+                    else:
+                        # Remove quotes if present at boundaries
+                        code = code.strip('\'"')
+                    # Try to detect language from the code
+                    lang = 'python'  # default
+                    if 'javascript' in code.lower() or 'js:' in code.lower():
+                        lang = 'javascript'
+                    elif any(word in code.lower() for word in ['print', 'def ', 'import ', 'for ', 'while ']):
+                        lang = 'python'
+
+                    print(f"\n💻 *Automatically executing {lang} code*")
+                    self.execute_code(lang, code)
+                else:
+                    # Try to find quoted code
+                    simple_code_match = re.search(r'["\']([^"\']+)["\']', user_input)
+                    if simple_code_match:
+                        code = simple_code_match.group(1)
+                        print(f"\n💻 *Automatically executing python code*")
+                        self.execute_code('python', code)
+
+        elif any(re.search(pattern, response_lower) for pattern in translate_patterns) or \
+             any(re.search(pattern, user_lower) for pattern in translate_patterns):
+            # Extract target language and text
+            # Look for language mentions
+            languages = ['spanish', 'french', 'german', 'italian', 'portuguese', 'chinese', 'japanese', 'russian', 'arabic']
+            target_lang = None
+            for lang in languages:
+                if lang in response_lower or lang in user_lower:
+                    target_lang = lang
+                    break
+
+            if target_lang:
+                # Extract text to translate (quote content)
+                text_match = re.search(r'["\']([^"\']+)["\']', user_input)
+                if text_match:
+                    text = text_match.group(1)
+                    print(f"\n🌍 *Automatically translating to {target_lang}*")
+                    self.translate_text(target_lang, text)
 
     def run(self):
         """Run the interactive CLI."""
