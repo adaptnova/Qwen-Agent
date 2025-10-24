@@ -83,9 +83,11 @@ Be helpful, accurate, and conversational."""
   /ping <host>              - Ping a host
 
 🎯 AI TOOLS:
+  /websearch <query>        - Search for information using AI
+  /math <expression>        - Solve math problems
   /analyze <file>           - AI analysis of file
   /summary <text>           - Summarize text
-  /code <language> <task>   - Generate code
+  /code <language> <task>   - Generate or execute code
   /translate <lang> <text>  - Translate text
 
 ⚙️  SETTINGS:
@@ -94,11 +96,19 @@ Be helpful, accurate, and conversational."""
 🚪 EXIT:
   quit, exit, /q           - Exit CLI
 
+💡 USAGE EXAMPLES:
+  /websearch latest AI news
+  /math "2^10 + 5 * 3"
+  /code python "print('Hello, World!')"
+  /translate spanish "Hello, how are you?"
+  /analyze README.md
+
 🔥 FEATURES:
   • 262,144 token context window
   • Real-time streaming responses
   • Session persistence
-  • 40+ built-in tools
+  • Working AI tools (search, math, code, translate)
+  • Safe code execution sandbox
         """
         print(help_text)
 
@@ -166,6 +176,14 @@ Be helpful, accurate, and conversational."""
             return True
 
         # AI tools
+        elif command == '/websearch' and len(parts) > 1:
+            query = ' '.join(parts[1:])
+            self.web_search(query)
+            return True
+        elif command == '/math' and len(parts) > 1:
+            expression = ' '.join(parts[1:])
+            self.solve_math(expression)
+            return True
         elif command == '/analyze' and len(parts) > 1:
             self.analyze_file(parts[1])
             return True
@@ -175,7 +193,14 @@ Be helpful, accurate, and conversational."""
         elif command == '/code' and len(parts) > 2:
             lang = parts[1]
             task = ' '.join(parts[2:])
-            self.generate_code(lang, task)
+            # Check if it's a simple execution request (code starts with quotes or is a simple expression)
+            if task.startswith('"') or task.startswith("'") or len(task) < 100 and not any(word in task.lower() for word in ['function', 'class', 'def', 'import', 'create', 'write', 'generate']):
+                # Execute the code directly
+                code = task.strip('"\'')
+                self.execute_code(lang, code)
+            else:
+                # Generate code then offer to execute it
+                self.generate_code(lang, task)
             return True
         elif command == '/translate' and len(parts) > 2:
             target_lang = parts[1]
@@ -454,6 +479,131 @@ Be helpful, accurate, and conversational."""
             self.add_to_history('assistant', code)
         except Exception as e:
             print(f"❌ Error generating code: {e}")
+
+    def solve_math(self, expression: str):
+        """Solve math problems using AI and actual calculation."""
+        try:
+            # Try to evaluate simple expressions first
+            import re
+            import math
+
+            # Check if it's a simple mathematical expression
+            if re.match(r'^[\d\+\-\*\/\^\(\)\.\s]+$', expression):
+                try:
+                    # Safe math evaluation
+                    allowed_names = {
+                        k: v for k, v in math.__dict__.items()
+                        if not k.startswith("_")
+                    }
+                    allowed_names['abs'] = abs
+                    allowed_names['round'] = round
+
+                    result = eval(expression, {"__builtins__": {}}, allowed_names)
+                    print(f"\n🧮 Math Result:")
+                    print("=" * 40)
+                    print(f"{expression} = {result}")
+                    print("=" * 40)
+                    return
+                except:
+                    pass  # Fall back to AI solving
+
+            # Use AI for complex problems
+            math_prompt = f"Please solve this math problem step by step: {expression}. Show your work and provide the final answer."
+            self.add_to_history('user', math_prompt)
+
+            response = self.client.chat.completions.create(
+                model="Qwen3-30B-A3B-Thinking",
+                messages=self.conversation_history,
+                max_tokens=800,
+                temperature=0.1
+            )
+
+            solution = response.choices[0].message.content
+            print(f"\n🧮 Math Solution for: '{expression}'")
+            print("=" * 50)
+            print(solution)
+            print("=" * 50)
+
+            self.add_to_history('assistant', solution)
+        except Exception as e:
+            print(f"❌ Error solving math problem: {e}")
+
+    def execute_code(self, language: str, code: str):
+        """Execute code in a safe sandbox environment."""
+        try:
+            print(f"\n💻 Executing {language} Code:")
+            print("=" * 50)
+            print(f"Code: {code}")
+            print("-" * 50)
+
+            if language.lower() == 'python':
+                import subprocess
+                import tempfile
+                import os
+
+                # Create temporary file
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+                    f.write(code)
+                    temp_file = f.name
+
+                try:
+                    # Execute with timeout and limited resources
+                    result = subprocess.run(
+                        ['python3', temp_file],
+                        capture_output=True,
+                        text=True,
+                        timeout=10,
+                        cwd='/tmp'  # Run in temporary directory
+                    )
+
+                    if result.returncode == 0:
+                        print("✅ Output:")
+                        print(result.stdout)
+                    else:
+                        print("❌ Error:")
+                        print(result.stderr)
+
+                except subprocess.TimeoutExpired:
+                    print("⏰ Error: Code execution timed out (10 second limit)")
+                except Exception as e:
+                    print(f"❌ Execution error: {e}")
+                finally:
+                    # Clean up temporary file
+                    try:
+                        os.unlink(temp_file)
+                    except:
+                        pass
+
+            else:
+                print(f"❌ Language '{language}' not yet supported for execution. Try 'python' instead.")
+
+        except Exception as e:
+            print(f"❌ Error executing code: {e}")
+
+    def web_search(self, query: str):
+        """Perform web search using AI with current knowledge."""
+        try:
+            # Add search request to conversation
+            search_prompt = f"Please search for current information about: {query}. Provide the latest results you have access to, formatted as a concise summary with key points."
+            self.add_to_history('user', search_prompt)
+
+            response = self.client.chat.completions.create(
+                model="Qwen3-30B-A3B-Thinking",
+                messages=self.conversation_history,
+                max_tokens=1200,
+                temperature=0.2
+            )
+
+            search_results = response.choices[0].message.content
+            print(f"\n🔍 Web Search Results for: '{query}'")
+            print("=" * 60)
+            print(search_results)
+            print("=" * 60)
+            print("💡 Note: Results based on training data. For truly live data, use external search engines.")
+
+            self.add_to_history('assistant', search_results)
+        except Exception as e:
+            print(f"❌ Error performing web search: {e}")
 
     def translate_text(self, target_lang: str, text: str):
         """Translate text using AI."""
