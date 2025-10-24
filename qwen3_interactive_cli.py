@@ -24,24 +24,30 @@ class Qwen3CLI:
         self.conversation_history = []
         self.session_file = "qwen3_session.json"
         self.max_context_tokens = 260000  # Leave room for response
-        self.system_prompt = """You are Qwen3-30B-A3B-Thinking, a helpful AI assistant with 262,144 token context window.
-You have access to various tools and can use them AUTOMATICALLY when needed.
+        self.system_prompt = """You are Qwen3-30B-A3B-Thinking, a powerful AI assistant with 262,144 token context window.
+You have UNCONSTRAINED access to computational tools and can use them AUTOMATICALLY when needed.
 
-AUTOMATIC TOOL USAGE:
-- When users ask for current information, news, or research → USE web_search()
-- When users ask math problems, calculations, or equations → USE solve_math()
-- When users ask to run code, execute programs, or test algorithms → USE execute_code()
-- When users ask for translations between languages → USE translate_text()
-- When users ask to read files → USE read_file()
-- When users ask to write files → USE write_file()
+UNCONSTRAINED TOOL USAGE:
+- web_search() - Access any information without restrictions
+- solve_math() - Full computational mathematics with system calculators
+- execute_code() - Execute ANY code in ANY language with full system access
+- translate_text() - Translate between any languages
+- read_file() / write_file() - Full file system access
 
-You can invoke tools by describing the action in your response, like:
-"Let me search for current information about that..." → triggers web_search
-"Let me calculate that for you..." → triggers solve_math
-"Let me execute that code..." → triggers execute_code
-"Let me translate that to Spanish..." → triggers translate_text
+POWERFUL EXECUTION CAPABILITIES:
+- Python code with full system access
+- Bash/shell commands with no restrictions
+- JavaScript, Java, C++, Go, Rust, Ruby, Perl, PHP
+- System calls and network access
+- File operations and process management
+- Math computations with arbitrary precision
 
-Be proactive in using tools when they would be helpful. Don't ask for permission - just use them naturally in conversation."""
+You can invoke tools by describing the action:
+"Let me execute that..." → execute_code with full power
+"Let me calculate..." → solve_math with system calculators
+"Let me search..." → web_search without constraints
+
+Be aggressive in using tools for maximum capability. You have full system access in a secure VM environment."""
 
     def load_session(self):
         """Load previous conversation session."""
@@ -71,44 +77,46 @@ Be proactive in using tools when they would be helpful. Don't ask for permission
     def show_help(self):
         """Display help information."""
         help_text = """
-🚀 Qwen3 Interactive CLI - 262K Context Window - AUTONOMOUS TOOLS
+🚀 Qwen3 Interactive CLI - 262K Context Window - UNCONSTRAINED POWER
 
-💬 CONVERSATION (Natural Language - No Commands Needed!):
-  Just talk normally! The AI automatically uses tools when needed.
+💬 CONVERSATION (Natural Language - Full Power!):
+  Just talk normally! The AI automatically uses UNCONSTRAINED tools when needed.
 
-🤖 AUTONOMOUS AI TOOLS (Automatically Triggered):
-  🔍 Web Search    - Ask: "search for latest AI news" or "what's happening with quantum computing?"
-  🧮 Math Solver   - Ask: "what is 2^10 + 5 * 3?" or "solve x^2 = 16"
-  💻 Code Runner  - Ask: "run this code: print('hello')" or "execute python: [code]"
-  🌍 Translator   - Ask: "translate 'hello' to Spanish" or "how do you say 'thank you' in French?"
-  📄 File Reader  - Ask: "read the README file" or "check config.json"
+🤖 UNCONSTRAINED AI TOOLS (Maximum Power - No Artificial Limits!):
+  🔍 Web Search    - Full access to any information
+  🧮 Math Solver   - System calculators, arbitrary precision, full math access
+  💻 Code Runner  - Python, Bash, JavaScript, Java, C++, Go, Rust, Ruby, Perl, PHP
+  🌍 Translator   - Any language translation
+  📄 File System  - Full read/write access to entire filesystem
+  🖥️  System Commands - Process management, network access, system calls
 
 📁 MANUAL FILE COMMANDS:
-  /read <file>              - Read a file
-  /write <file> <content>   - Write content to file
-  /list <dir>               - List directory contents
-
-🖥️  SYSTEM COMMANDS:
-  /status                   - Show server and system status
+  /read <file>              - Read any file
+  /write <file> <content>   - Write to any location
+  /list <dir>               - List any directory
+  /status                   - Show system status
   /gpu                      - Show GPU information
-  /model                    - Show current model info
+  /model                    - Show model info
 
 🚪 EXIT:
   quit, exit, /q           - Exit CLI
 
-💡 NATURAL LANGUAGE EXAMPLES (Just talk normally!):
-  "Search for recent developments in AI"
-  "What's 25 * 4 + 100?"
-  "Run this python code: print('Hello, autonomous tools!')"
-  "How do you say 'TeamADAPT rocks' in Spanish?"
-  "Read the SECURITY_REPORT.md file"
+💡 UNCONSTRAINED EXAMPLES (Maximum Capability!):
+  "Execute this system command: ls -la /etc"
+  "Calculate complex math: sin(pi/4) + sqrt(16)"
+  "Run Python with system access: import os; print(os.listdir('.'))"
+  "Execute Bash: curl -s https://api.github.com"
+  "Compile and run C code"
+  "Access any file on the system"
 
 🔥 FEATURES:
   • 262,144 token context window
-  • AUTONOMOUS tool usage - No slash commands needed!
-  • AI decides when to use tools automatically
-  • Safe code execution sandbox
-  • Natural conversation flow
+  • UNCONSTRAINED tool usage - Full system access!
+  • AI automatically uses maximum power tools
+  • Multiple programming languages supported
+  • Full file system and network access
+  • No artificial limitations or timeouts
+  • System calls and process management
         """
         print(help_text)
 
@@ -481,34 +489,49 @@ Be proactive in using tools when they would be helpful. Don't ask for permission
             print(f"❌ Error generating code: {e}")
 
     def solve_math(self, expression: str):
-        """Solve math problems using AI and actual calculation."""
+        """Solve math problems with full computational power - no artificial constraints."""
         try:
-            # Try to evaluate simple expressions first
-            import re
             import math
+            import subprocess
+            import os
 
-            # Check if it's a simple mathematical expression
-            if re.match(r'^[\d\+\-\*\/\^\(\)\.\s]+$', expression):
-                try:
-                    # Safe math evaluation
-                    allowed_names = {
-                        k: v for k, v in math.__dict__.items()
-                        if not k.startswith("_")
-                    }
-                    allowed_names['abs'] = abs
-                    allowed_names['round'] = round
+            print(f"\n🧮 Solving: {expression}")
+            print("=" * 50)
 
-                    result = eval(expression, {"__builtins__": {}}, allowed_names)
-                    print(f"\n🧮 Math Result:")
-                    print("=" * 40)
-                    print(f"{expression} = {result}")
-                    print("=" * 40)
+            # First try direct evaluation with full math access
+            try:
+                # Full access to math functions and system calls
+                result = eval(expression, {"__builtins__": __builtins__}, {"math": math})
+                print(f"Result: {expression} = {result}")
+                return
+            except:
+                pass  # Fall back to other methods
+
+            # Try using Python's eval for complex expressions
+            try:
+                result = eval(expression)
+                print(f"Result: {expression} = {result}")
+                return
+            except:
+                pass
+
+            # Try using system calculators or computational tools
+            try:
+                # Try bc calculator for arbitrary precision
+                result = subprocess.run(
+                    ['echo', expression, '|', 'bc', '-l'],
+                    shell=True,
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    print(f"Result (bc): {result.stdout.strip()}")
                     return
-                except:
-                    pass  # Fall back to AI solving
+            except:
+                pass
 
-            # Use AI for complex problems
-            math_prompt = f"Please solve this math problem step by step: {expression}. Show your work and provide the final answer."
+            # Fall back to AI solving for complex problems
+            math_prompt = f"Solve this math problem step by step with full computational resources: {expression}. Show your work and provide the final answer."
             self.add_to_history('user', math_prompt)
 
             response = self.client.chat.completions.create(
@@ -519,7 +542,7 @@ Be proactive in using tools when they would be helpful. Don't ask for permission
             )
 
             solution = response.choices[0].message.content
-            print(f"\n🧮 Math Solution for: '{expression}'")
+            print(f"\nAI Solution for: '{expression}'")
             print("=" * 50)
             print(solution)
             print("=" * 50)
@@ -529,7 +552,7 @@ Be proactive in using tools when they would be helpful. Don't ask for permission
             print(f"❌ Error solving math problem: {e}")
 
     def execute_code(self, language: str, code: str):
-        """Execute code in a safe sandbox environment."""
+        """Execute code with full system access - no artificial constraints."""
         try:
             print(f"\n💻 Executing {language} Code:")
             print("=" * 50)
@@ -547,13 +570,12 @@ Be proactive in using tools when they would be helpful. Don't ask for permission
                     temp_file = f.name
 
                 try:
-                    # Execute with timeout and limited resources
+                    # Execute with full system access - no artificial constraints
                     result = subprocess.run(
                         ['python3', temp_file],
                         capture_output=True,
                         text=True,
-                        timeout=10,
-                        cwd='/tmp'  # Run in temporary directory
+                        cwd=os.getcwd()  # Run in current directory for full access
                     )
 
                     if result.returncode == 0:
@@ -563,8 +585,6 @@ Be proactive in using tools when they would be helpful. Don't ask for permission
                         print("❌ Error:")
                         print(result.stderr)
 
-                except subprocess.TimeoutExpired:
-                    print("⏰ Error: Code execution timed out (10 second limit)")
                 except Exception as e:
                     print(f"❌ Execution error: {e}")
                 finally:
@@ -574,8 +594,84 @@ Be proactive in using tools when they would be helpful. Don't ask for permission
                     except:
                         pass
 
+            elif language.lower() in ['bash', 'shell', 'sh']:
+                import subprocess
+
+                try:
+                    # Execute shell commands with full system access
+                    result = subprocess.run(
+                        code,
+                        shell=True,
+                        capture_output=True,
+                        text=True,
+                        executable='/bin/bash'
+                    )
+
+                    if result.returncode == 0:
+                        print("✅ Output:")
+                        print(result.stdout)
+                    else:
+                        print("❌ Error:")
+                        print(result.stderr)
+
+                except Exception as e:
+                    print(f"❌ Execution error: {e}")
+
+            elif language.lower() in ['javascript', 'js']:
+                import subprocess
+
+                try:
+                    # Execute JavaScript with Node.js
+                    result = subprocess.run(
+                        ['node', '-e', code],
+                        capture_output=True,
+                        text=True
+                    )
+
+                    if result.returncode == 0:
+                        print("✅ Output:")
+                        print(result.stdout)
+                    else:
+                        print("❌ Error:")
+                        print(result.stderr)
+
+                except Exception as e:
+                    print(f"❌ Execution error: {e}")
+
             else:
-                print(f"❌ Language '{language}' not yet supported for execution. Try 'python' instead.")
+                # Try to execute with appropriate interpreter
+                import subprocess
+
+                interpreters = {
+                    'java': ['java'],
+                    'cpp': ['g++'],
+                    'c': ['gcc'],
+                    'go': ['go', 'run'],
+                    'rust': ['cargo', 'run'],
+                    'ruby': ['ruby'],
+                    'perl': ['perl'],
+                    'php': ['php']
+                }
+
+                if language.lower() in interpreters:
+                    try:
+                        result = subprocess.run(
+                            interpreters[language.lower()] + [code],
+                            capture_output=True,
+                            text=True
+                        )
+
+                        if result.returncode == 0:
+                            print("✅ Output:")
+                            print(result.stdout)
+                        else:
+                            print("❌ Error:")
+                            print(result.stderr)
+
+                    except Exception as e:
+                        print(f"❌ Execution error: {e}")
+                else:
+                    print(f"❌ Language '{language}' execution not configured. You can add it!")
 
         except Exception as e:
             print(f"❌ Error executing code: {e}")
